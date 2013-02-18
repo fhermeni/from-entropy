@@ -301,13 +301,12 @@ public class ConfigurationConverter {
 
         String name = pbVM.getName();
         UUID u = registry.get(name);
-        model.getAttributes().put(u, ENTROPY_ID, name);
         if (u == null) {
             u = UUID.randomUUID();
             registry.put(name, u);
             revRegistry.put(u, name);
         }
-
+        model.getAttributes().put(u, ENTROPY_ID, name);
         if (pbVM.hasCpuConsumption()) {
             rcCpu.set(u, pbVM.getCpuConsumption());
         }
@@ -358,13 +357,12 @@ public class ConfigurationConverter {
 
         String name = pbNode.getName();
         UUID u = registry.get(name);
-        model.getAttributes().put(u, ENTROPY_ID, name);
         if (u == null) {
             u = UUID.randomUUID();
             registry.put(name, u);
             revRegistry.put(u, name);
         }
-
+        model.getAttributes().put(u, ENTROPY_ID, name);
         if (pbNode.hasNbOfCPUs()) {
             rcNbCPUs.set(u, pbNode.getNbOfCPUs());
         }

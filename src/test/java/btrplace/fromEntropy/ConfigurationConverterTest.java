@@ -69,15 +69,20 @@ public class ConfigurationConverterTest {
             VirtualMachine vm = new SimpleVirtualMachine("VM" + i, i, i + 1, i + 2);
             vm.setCPUDemand(i + 3);
             vm.setCPUMax(i + 3);
-            Node n = cfg.getOnlines().get(rnd.nextInt(cfg.getOnlines().size()));
-            if (i % 3 == 0) {
-                cfg.setSleepOn(vm, n);
-            } else if (i % 5 == 0) {
-                cfg.addWaiting(vm);
-            } else {
-                cfg.setRunOn(vm, cfg.getAllNodes().get("N" + (i%2 + 1)));
-            }
         }
+
+        The mapping:
+        N1: VM2 VM4 VM8 VM14 VM16
+        N2: VM1 VM7 VM11 VM13 VM17 VM19
+        (N3): -
+        N4: -
+        N5: (VM6) (VM9) (VM18)
+        (N6): -
+        N7: (VM3) (VM12)
+        N8: -
+        (N9): -
+        N10: (VM15)
+        FARM VM5 VM10 VM20
          */
 
         //Check the nodes resources
@@ -118,5 +123,48 @@ public class ConfigurationConverterTest {
         Assert.assertEquals(map.getSleepingVMs().size(), 6);
         Assert.assertEquals(map.getReadyVMs().size(), 3);
         Assert.assertEquals(map.getRunningVMs().size(), 11);
+
+        //Check the VM placement
+        for (String id : new String[]{"VM2", "VM4", "VM8", "VM14", "VM16"}) {
+            UUID vm = conv.getRegistry().get(id);
+            Assert.assertTrue(map.getRunningVMs().contains(vm));
+            Assert.assertEquals(map.getVMLocation(vm), conv.getRegistry().get("N1"), id + " should be on N1. Instead:" + conv.getReverseRegistry().get(map.getVMLocation(vm)));
+        }
+
+        for (String id : new String[]{"VM1", "VM7", "VM11", "VM13", "VM17", "VM19"}) {
+            UUID vm = conv.getRegistry().get(id);
+            Assert.assertTrue(map.getRunningVMs().contains(vm));
+            Assert.assertEquals(map.getVMLocation(vm), conv.getRegistry().get("N2"), id + " should be on N2. Instead:" + conv.getReverseRegistry().get(map.getVMLocation(vm)));
+        }
+
+        for (String id : new String[]{"VM6", "VM9", "VM18"}) {
+            UUID vm = conv.getRegistry().get(id);
+            Assert.assertTrue(map.getSleepingVMs().contains(vm));
+            Assert.assertEquals(map.getVMLocation(vm), conv.getRegistry().get("N5"), id + " should be on N5. Instead:" + conv.getReverseRegistry().get(map.getVMLocation(vm)));
+        }
+
+        for (String id : new String[]{"VM3", "VM12"}) {
+            UUID vm = conv.getRegistry().get(id);
+            Assert.assertTrue(map.getSleepingVMs().contains(vm));
+            Assert.assertEquals(map.getVMLocation(vm), conv.getRegistry().get("N7"), id + " should be on N7. Instead:" + conv.getReverseRegistry().get(map.getVMLocation(vm)));
+        }
+
+        UUID vm = conv.getRegistry().get("VM15");
+        Assert.assertTrue(map.getSleepingVMs().contains(vm));
+        Assert.assertEquals(map.getVMLocation(vm), conv.getRegistry().get("N10"), "VM15 should be on N10. Instead:" + conv.getReverseRegistry().get(map.getVMLocation(vm)));
+
+        //Check the entropy attribute
+        for (UUID u : map.getAllVMs()) {
+            String id = mo.getAttributes().getString(u, ConfigurationConverter.ENTROPY_ID);
+            Assert.assertEquals(conv.getRegistry().get(id), u);
+            Assert.assertEquals(conv.getReverseRegistry().get(u), id);
+        }
+
+        for (UUID u : map.getAllNodes()) {
+            String id = mo.getAttributes().getString(u, ConfigurationConverter.ENTROPY_ID);
+            Assert.assertEquals(conv.getRegistry().get(id), u);
+            Assert.assertEquals(conv.getReverseRegistry().get(u), id);
+        }
+
     }
 }
