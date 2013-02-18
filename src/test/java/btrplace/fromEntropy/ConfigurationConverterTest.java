@@ -21,6 +21,7 @@ package btrplace.fromEntropy;
 import btrplace.model.Mapping;
 import btrplace.model.Model;
 import btrplace.model.SatConstraint;
+import btrplace.model.constraint.Overbook;
 import btrplace.model.constraint.Preserve;
 import btrplace.model.view.ShareableResource;
 import org.testng.Assert;
@@ -31,16 +32,16 @@ import java.util.Collection;
 import java.util.UUID;
 
 /**
- * Unit Tests for {@link Configuration2Instance}.
+ * Unit Tests for {@link ConfigurationConverter}.
  * TODO: Howto test VM placement.
  *
  * @author Fabien Hermenier
  */
-public class Configuration2InstanceTest {
+public class ConfigurationConverterTest {
 
     @Test
     public void test() throws IOException {
-        Configuration2Instance conv = new Configuration2Instance("src/test/resources/configTest.pbd");
+        ConfigurationConverter conv = new ConfigurationConverter("src/test/resources/configTest.pbd");
         Model mo = conv.getModel();
         Collection<SatConstraint> cstrs = conv.getConstraint();
 
@@ -48,9 +49,9 @@ public class Configuration2InstanceTest {
         Assert.assertEquals(map.getOnlineNodes().size(), 7);
         Assert.assertEquals(map.getOfflineNodes().size(), 3);
 
-        ShareableResource rcMem = (ShareableResource) mo.getView(ShareableResource.VIEW_ID_BASE + "mem");
-        ShareableResource rcUcpu = (ShareableResource) mo.getView(ShareableResource.VIEW_ID_BASE + "uCpu");
-        ShareableResource rcNbCpus = (ShareableResource) mo.getView(ShareableResource.VIEW_ID_BASE + "nbCpus");
+        ShareableResource rcMem = (ShareableResource) mo.getView(ShareableResource.VIEW_ID_BASE + ConfigurationConverter.MEMORY_USAGE);
+        ShareableResource rcUcpu = (ShareableResource) mo.getView(ShareableResource.VIEW_ID_BASE + ConfigurationConverter.UCPU_USAGE);
+        ShareableResource rcNbCpus = (ShareableResource) mo.getView(ShareableResource.VIEW_ID_BASE + ConfigurationConverter.NB_CPUS);
 
             /*
             The initial configuration
@@ -74,7 +75,7 @@ public class Configuration2InstanceTest {
             } else if (i % 5 == 0) {
                 cfg.addWaiting(vm);
             } else {
-                cfg.setRunOn(vm, n);
+                cfg.setRunOn(vm, cfg.getAllNodes().get("N" + (i%2 + 1)));
             }
         }
          */
@@ -103,9 +104,13 @@ public class Configuration2InstanceTest {
                 Preserve p = (Preserve) cstr;
                 UUID vm = p.getInvolvedVMs().iterator().next();
                 Assert.assertEquals(p.getAmount(), rcNbCpus.get(vm) + 3);
-                Assert.assertEquals(mo.getAttributes().getLong(vm, "uCpuMax").intValue(), rcNbCpus.get(vm) + 3);
-            } else {
-                Assert.fail(); //Unexpected constraint
+                Assert.assertEquals(mo.getAttributes().getLong(vm, ConfigurationConverter.UCPU_MAX).intValue(), rcNbCpus.get(vm) + 3);
+            } else if (cstr instanceof Overbook) {
+                Overbook o = (Overbook) cstr;
+                Assert.assertEquals(o.getInvolvedNodes(), map.getAllNodes());
+                Assert.assertEquals(o.getRatio(), 1.0);
+                Assert.assertTrue(o.getResource().equals(ConfigurationConverter.MEMORY_USAGE)
+                        || o.getResource().equals(ConfigurationConverter.UCPU_USAGE));
             }
         }
 
