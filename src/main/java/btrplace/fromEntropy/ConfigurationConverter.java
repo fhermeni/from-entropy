@@ -65,7 +65,7 @@ public class ConfigurationConverter {
 
     private Map<UUID, String> revRegistry;
 
-    private Set<SatConstraint> cstrs;
+    private List<SatConstraint> cstrs;
 
     /**
      * The amount of memory available on a node, or the memory consumption of a VM.
@@ -126,7 +126,7 @@ public class ConfigurationConverter {
 
         registry = new HashMap<String, UUID>();
         revRegistry = new HashMap<UUID, String>();
-        cstrs = new HashSet<SatConstraint>();
+        cstrs = new ArrayList<SatConstraint>();
 
         makeMapping(PBConfiguration.Configuration.parseFrom(new FileInputStream(src)));
 
@@ -302,7 +302,7 @@ public class ConfigurationConverter {
         String name = pbVM.getName();
         UUID u = registry.get(name);
         if (u == null) {
-            u = UUID.randomUUID();
+            u = nextUUID();
             registry.put(name, u);
             revRegistry.put(u, name);
         }
@@ -311,7 +311,7 @@ public class ConfigurationConverter {
             rcCpu.set(u, pbVM.getCpuConsumption());
         }
 
-        if (pbVM.hasCpuDemand()) {
+        if (pbVM.hasCpuDemand() && pbVM.getCpuDemand() != rcCpu.get(u)) {
             cstrs.add(new Preserve(Collections.singleton(u), UCPU_USAGE, pbVM.getCpuDemand()));
         }
 
@@ -323,8 +323,8 @@ public class ConfigurationConverter {
             rcMem.set(u, pbVM.getMemoryConsumption());
         }
 
-        if (pbVM.hasMemoryDemand()) {
-            cstrs.add(new Preserve(Collections.singleton(u), MEMORY_USAGE, pbVM.getCpuDemand()));
+        if (pbVM.hasMemoryDemand() && pbVM.getMemoryDemand() != rcMem.get(u)) {
+            cstrs.add(new Preserve(Collections.singleton(u), MEMORY_USAGE, pbVM.getMemoryDemand()));
         }
 
         if (pbVM.hasTemplate()) {
@@ -338,7 +338,7 @@ public class ConfigurationConverter {
         for (PBVirtualMachine.VirtualMachine.Option opt : pbVM.getOptionsList()) {
             String k = opt.getKey();
             if (opt.hasValue()) {
-                model.getAttributes().put(u, k, opt.getValue());
+                model.getAttributes().castAndPut(u, k, opt.getValue());
             } else {
                 model.getAttributes().put(u, k, true);
             }
@@ -358,7 +358,7 @@ public class ConfigurationConverter {
         String name = pbNode.getName();
         UUID u = registry.get(name);
         if (u == null) {
-            u = UUID.randomUUID();
+            u = nextUUID();
             registry.put(name, u);
             revRegistry.put(u, name);
         }
@@ -387,7 +387,7 @@ public class ConfigurationConverter {
             for (PBNode.Node.Platform.Option o : p.getOptionsList()) {
                 String k = o.getKey();
                 if (o.hasValue()) {
-                    model.getAttributes().put(u, k, o.getValue());
+                    model.getAttributes().castAndPut(u, k, o.getValue());
                 } else {
                     model.getAttributes().put(u, k, true);
                 }
@@ -424,5 +424,27 @@ public class ConfigurationConverter {
                 }
             }
         }
+    }
+
+    /**
+     * Get the conversion result as an instance.
+     *
+     * @return an instance
+     */
+    public Instance getInstance() {
+        return new Instance(model, cstrs);
+    }
+
+    private long low = 0, high = 0;
+
+    /**
+     * Generate the next UUID.
+     */
+    private UUID nextUUID() {
+        if (low + 1 == 0) {  //Low is back to 0, so high++
+            high++;
+        }
+        low++;
+        return new UUID(high, low);
     }
 }
