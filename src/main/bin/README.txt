@@ -9,18 +9,16 @@ It can be used through an API or a standalone application
 ## Usage as a standalone application ##
 
 Download the last release of the application, and uncompress it.
-The `entroPlace` script can then be used to convert entropy configurations
+The `entroPlace` script can then be used to convert entropy configuration
 into btrplace instances:
 
-    $ ./entroPlace
-    Usage: converter src [dst] -o output
-        src: the configuration in protobuf format to convert
-  	    dst: an optional configuration that will be used to get the VMs and nodes state change
-  	    output: the output JSON file. Ends with '.gz' for an automatic compression
+```sh
+  $ ./entroPlace
 
+```
 ## Embedding ##
 
-The maven artifact `btrplace:fromEntropy` is available through a private repository
+A maven artifact is available through a private repository
 so you have first to edit your `pom.xml` to declare it:
 
 ```xml

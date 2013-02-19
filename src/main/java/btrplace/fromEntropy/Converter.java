@@ -81,6 +81,9 @@ public class Converter {
 
     public static void usage(int code) {
         System.out.println("Usage: converter src [dst] -o output");
+        System.out.println("\tsrc: the configuration in protobuf format to convert");
+        System.out.println("\tdst: an optional configuration that will be used to get the VMs and nodes state change");
+        System.out.println("\toutput: the output JSON file. Ends with '.gz' for an automatic compression");
         System.exit(code);
     }
 }
