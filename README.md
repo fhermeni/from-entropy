@@ -6,6 +6,28 @@ to models and constraints that can be used by btrplace.
 
 It can be used through an API or a standalone application.
 
+## Conversion rules ##
+
+ * VM and node templates are declared as an attribute named "template".
+ * Node IP and Mac are declared as as attributes named "ip" and "mac".
+ * For each VM and node, the original name of the element inside entropy is
+   stored in the "entropy_id" attribute.
+ * The number of CPUs for the nodes and the VMs is converted to a
+   ShareableResource view having a "nbCpus" resource identifier. No mapping
+   is performed for this resource by default as Entropy ignores it.
+ * The memory capacity (usage) of the nodes (VMs) is converted to a
+   ShareableResource view having a "memory" resource identifier. The mapping
+   between the VM consumption and the node capacity is performed with an
+   {@link Overbook} constraint having an overloading factor of 1.
+ * The uCPU capacity (consumption) of the nodes (VMs) is converted to a
+   {@link ShareableResource} view having a "uCpu" resource identifier. The
+   mapping between the VM consumption and the node capacity is performed with an
+   {@link Overbook} constraint having an overloading factor of 1.
+ * When the next state for the elements is provided through another
+   configuration, {@link Running}, {@link Sleeping}, {@link Ready},
+   {@link Killed}, {@link Online}, {@link Offline} constraints are inserted to
+   indicate the state changes.
+
 ## Usage as a standalone application ##
 
 Download the last release of the application, and uncompress it.
