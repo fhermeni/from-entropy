@@ -18,6 +18,7 @@
 
 package btrplace.fromEntropy;
 
+import btrplace.json.model.Instance;
 import btrplace.model.*;
 import btrplace.model.constraint.*;
 import btrplace.model.view.ShareableResource;

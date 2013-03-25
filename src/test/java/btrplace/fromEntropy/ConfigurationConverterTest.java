@@ -18,6 +18,8 @@
 
 package btrplace.fromEntropy;
 
+import btrplace.json.JSONConverterException;
+import btrplace.json.model.ModelConverter;
 import btrplace.model.Mapping;
 import btrplace.model.Model;
 import btrplace.model.SatConstraint;
@@ -40,10 +42,14 @@ import java.util.UUID;
 public class ConfigurationConverterTest {
 
     @Test
-    public void test() throws IOException {
+    public void test() throws IOException, JSONConverterException {
         ConfigurationConverter conv = new ConfigurationConverter("src/test/resources/configTest.pbd");
         Model mo = conv.getModel();
         Collection<SatConstraint> cstrs = conv.getConstraint();
+
+        ModelConverter cc = new ModelConverter();
+        Model m2 = cc.fromJSON(cc.toJSON(mo));
+        Assert.assertEquals(m2, mo);
 
         Mapping map = mo.getMapping();
         Assert.assertEquals(map.getOnlineNodes().size(), 7);
@@ -165,6 +171,5 @@ public class ConfigurationConverterTest {
             Assert.assertEquals(conv.getRegistry().get(id), u);
             Assert.assertEquals(conv.getReverseRegistry().get(u), id);
         }
-
     }
 }

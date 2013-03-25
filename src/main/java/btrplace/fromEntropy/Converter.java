@@ -18,8 +18,8 @@
 
 package btrplace.fromEntropy;
 
-import btrplace.model.Instance;
-import btrplace.model.InstanceConverter;
+import btrplace.json.model.Instance;
+import btrplace.json.model.InstanceConverter;
 import net.minidev.json.JSONObject;
 
 import java.io.FileOutputStream;
@@ -43,7 +43,7 @@ public class Converter {
         src = args[0];
         output = args[args.length - 1];
         if (!args[1].equals("-o")) {
-            dst = args[2];
+            dst = args[1];
         }
 
         OutputStreamWriter out = null;
@@ -56,7 +56,6 @@ public class Converter {
 
             InstanceConverter iConv = new InstanceConverter();
             JSONObject o = iConv.toJSON(i);
-
             if (output.endsWith(".gz")) {
                 out = new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(output)));
             } else {

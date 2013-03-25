@@ -4,7 +4,7 @@ Entropy to Btrplace
 This module allows to convert configurations in the entropy protobuf format
 to models and constraints that can be used by btrplace.
 
-It can be used through an API or a standalone application
+It can be used through an API or a standalone application.
 
 ## Usage as a standalone application ##
 

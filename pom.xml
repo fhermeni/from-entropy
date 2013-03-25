@@ -40,8 +40,8 @@
         </dependency>
         <dependency>
             <groupId>btrplace</groupId>
-            <artifactId>solver-api</artifactId>
-            <version>0.12</version>
+            <artifactId>solver-bundle</artifactId>
+            <version>0.27</version>
         </dependency>
         <dependency>
             <groupId>org.testng</groupId>
@@ -50,11 +50,6 @@
             <type>jar</type>
             <scope>test</scope>
             <optional>false</optional>
-        </dependency>
-        <dependency>
-            <groupId>btrplace</groupId>
-            <artifactId>solver-json</artifactId>
-            <version>0.4-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
@@ -89,11 +84,11 @@
     <repositories>
         <repository>
             <id>btrp-releases</id>
-            <url>http://btrp.inria.fr:8080/repos/releases</url>
+            <url>http://btrp.inria.fr/repos/releases</url>
         </repository>
         <repository>
             <id>btrp-snapshots</id>
-            <url>http://btrp.inria.fr:8080/repos/snapshot-releases</url>
+            <url>http://btrp.inria.fr/repos/snapshot-releases</url>
         </repository>
     </repositories>
 
