@@ -133,6 +133,7 @@ public class ConfigurationConverter {
 
         cstrs.add(new Overbook(map.getAllNodes(), MEMORY_USAGE, 1));
         cstrs.add(new Overbook(map.getAllNodes(), UCPU_USAGE, 1));
+
     }
 
     /**
@@ -217,7 +218,7 @@ public class ConfigurationConverter {
                 String vm = hosted.getVm().getName();
                 UUID u = registry.get(vm);
                 if (st == PBConfiguration.Configuration.HostedVMState.RUNNING) {
-                    if (map.getReadyVMs().contains(u) || map.getSleepingVMs().contains(u)) {
+                    if (map.getReadyVMs().contains(u) || map.getSleepingVMs().contains(u) || map.getRunningVMs().contains(u)) {
                         running.getInvolvedVMs().add(u);
                         seen.add(u);
                     }
@@ -239,20 +240,14 @@ public class ConfigurationConverter {
     }
 
     private void nextNodeStates(PBConfiguration.Configuration cfg, Online on, Offline off) {
-        //Check for the online nodes that go offline
         for (PBNode.Node n : cfg.getOfflinesList()) {
             UUID u = registry.get(n.getName());
-            if (map.getOnlineNodes().contains(u)) {
-                off.getInvolvedNodes().add(u);
-            }
+            off.getInvolvedNodes().add(u);
         }
 
-        //Check for the offline nodes that go online
         for (PBConfiguration.Configuration.Hoster n : cfg.getOnlinesList()) {
             UUID u = registry.get(n.getNode().getName());
-            if (map.getOfflineNodes().contains(u)) {
-                on.getInvolvedNodes().add(u);
-            }
+            on.getInvolvedNodes().add(u);
         }
     }
 

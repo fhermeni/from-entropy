@@ -20,6 +20,7 @@ package btrplace.fromEntropy;
 
 import btrplace.json.model.Instance;
 import btrplace.json.model.InstanceConverter;
+import btrplace.model.SatConstraint;
 import net.minidev.json.JSONObject;
 
 import java.io.FileOutputStream;
@@ -50,8 +51,13 @@ public class Converter {
         try {
             ConfigurationConverter conv = new ConfigurationConverter(src);
             Instance i = conv.getInstance();
+
             if (dst != null) {
                 i.getConstraints().addAll(conv.getNextStates(dst));
+            }
+
+            for (SatConstraint c : i.getConstraints()) {
+                System.out.println(c.getClass().getSimpleName() + ": " + c.getInvolvedNodes().size() + " " + c.getInvolvedVMs().size());
             }
 
             InstanceConverter iConv = new InstanceConverter();
