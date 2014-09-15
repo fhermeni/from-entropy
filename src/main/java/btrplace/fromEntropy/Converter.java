@@ -18,14 +18,18 @@
 
 package btrplace.fromEntropy;
 
+import btrplace.btrpsl.ErrorMessage;
+import btrplace.btrpsl.Script;
+import btrplace.btrpsl.ScriptBuilder;
+import btrplace.btrpsl.ScriptBuilderException;
+import btrplace.btrpsl.includes.BasicIncludes;
+import btrplace.json.model.InstanceConverter;
 import btrplace.model.Instance;
-import btrplace.model.InstanceConverter;
 import net.minidev.json.JSONObject;
 
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.GZIPOutputStream;
 
 /**
@@ -36,24 +40,97 @@ import java.util.zip.GZIPOutputStream;
 public class Converter {
 
     public static void main(String[] args) {
-        String src, dst = null, output;
-        if (args.length < 3) {
+        String src, dst = null, output, scriptDC = null, scriptCL = null;
+
+        if (args.length < 3 || args.length > 6 || args.length == 5 || !args[args.length-2].equals("-o")) {
             usage(1);
         }
         src = args[0];
         output = args[args.length - 1];
-        if (!args[1].equals("-o")) {
-            dst = args[2];
+        if (args.length > 3) {
+            dst = args[1];
+            if (args.length > 5) {
+                scriptDC = args[2];
+                scriptCL = args[3];
+            }
         }
 
         OutputStreamWriter out = null;
         try {
+            // Convert the src file
             ConfigurationConverter conv = new ConfigurationConverter(src);
             Instance i = conv.getInstance();
+
+            // Read the dst file, deduce and add the states constraints
             if (dst != null) {
-                i.getConstraints().addAll(conv.getNextStates(dst));
+                i.getSatConstraints().addAll(conv.getNextStates(dst));
             }
 
+            // Read the script files
+            ScriptBuilder scriptBuilder = new ScriptBuilder(i.getModel());
+            // Read the datacenter script file if exists
+            if (scriptDC != null) {
+                String strScriptDC = null;
+                try {
+                    strScriptDC = readFile(scriptDC);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                Script scrDC = null;
+                try {
+                    // Build the DC script
+                    scrDC = scriptBuilder.build(strScriptDC);
+
+                } catch (ScriptBuilderException sbe) {
+                    List<ErrorMessage> errorsList = sbe.getErrorReporter().getErrors();
+                    List<JSONObject> errors = new ArrayList<JSONObject>();
+
+                    for (ErrorMessage error : errorsList) {
+                        JSONObject e = new JSONObject();
+                        e.put("row", error.lineNo());
+                        e.put("column", error.colNo());
+                        e.put("message", error.message());
+                        errors.add(e);
+                    }
+                }
+                // Set the DC script as an include
+                BasicIncludes bi = new BasicIncludes();
+                bi.add(scrDC);
+                scriptBuilder.setIncludes(bi);
+            }
+            // Read the client script file if exists
+            if (scriptCL != null) {
+                String strScriptCL = null;
+                try {
+                    strScriptCL = readFile(scriptCL);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                Script scrCL = null;
+                try {
+                    // Build the DC script
+                    scrCL = scriptBuilder.build(strScriptCL);
+
+                } catch (ScriptBuilderException sbe) {
+                    List<ErrorMessage> errorsList = sbe.getErrorReporter().getErrors();
+                    List<JSONObject> errors = new ArrayList<JSONObject>();
+
+                    for (ErrorMessage error : errorsList) {
+                        JSONObject e = new JSONObject();
+                        e.put("row", error.lineNo());
+                        e.put("column", error.colNo());
+                        e.put("message", error.message());
+                        errors.add(e);
+                    }
+                }
+
+                // Add the resulting constraints
+                if (scrCL.getConstraints() != null) {
+                    i.getSatConstraints().addAll(scrCL.getConstraints());
+                }
+            }
+
+            // Convert to JSON
             InstanceConverter iConv = new InstanceConverter();
             JSONObject o = iConv.toJSON(i);
 
@@ -62,8 +139,11 @@ public class Converter {
             } else {
                 out = new FileWriter(output);
             }
+
+            // Write the output file
             o.writeJSONString(out);
             out.close();
+
         } catch (Exception e) {
             System.err.println(e.getMessage());
             System.exit(1);
