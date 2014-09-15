@@ -126,7 +126,8 @@ public class Converter {
 
                 // Add the resulting constraints
                 if (scrCL.getConstraints() != null) {
-                    i.getSatConstraints().addAll(scrCL.getConstraints());
+                    //i.getSatConstraints().addAll(scrCL.getConstraints());
+                    System.out.println(scrCL.getConstraints());
                 }
             }
 
