@@ -469,11 +469,11 @@ public class ConfigurationConverter {
             map.addReadyVM(parse(vm));
         }
         for (PBConfiguration.Configuration.Hoster h : c.getOnlinesList()) {
-            UUID n = parse(h.getNode());
+            Node n = parse(h.getNode());
             map.addOnlineNode(n);
             for (PBConfiguration.Configuration.Hosted hosted : h.getHostedList()) {
                 PBConfiguration.Configuration.HostedVMState st = hosted.getState();
-                UUID vm = parse(hosted.getVm());
+                VM vm = parse(hosted.getVm());
                 switch (st) {
                     case RUNNING:
                         map.addRunningVM(vm, n);
@@ -492,19 +492,6 @@ public class ConfigurationConverter {
      * @return an instance
      */
     public Instance getInstance() {
-        return new Instance(model, cstrs);
-    }
-
-    private long low = 0, high = 0;
-
-    /**
-     * Generate the next UUID.
-     */
-    private UUID nextUUID() {
-        if (low + 1 == 0) {  //Low is back to 0, so high++
-            high++;
-        }
-        low++;
-        return new UUID(high, low);
+        return new Instance(model, cstrs, new MinMTTR());
     }
 }
