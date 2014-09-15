@@ -79,6 +79,7 @@ public class Converter {
                 Script scrDC = null;
                 try {
                     // Build the DC script
+                    // TODO: return null there due to the node name (no @)
                     scrDC = scriptBuilder.build(strScriptDC);
 
                 } catch (ScriptBuilderException sbe) {
