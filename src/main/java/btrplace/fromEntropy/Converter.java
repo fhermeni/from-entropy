@@ -166,4 +166,28 @@ public class Converter {
         System.out.println("\toutput: the output JSON file. Ends with '.gz' for an automatic compression");
         System.exit(code);
     }
+
+    /**
+     * read a file
+     *
+     * @param fileName
+     * @return the file content as a String
+     * @throws IOException
+     */
+    private static String readFile(String fileName) throws IOException {
+        BufferedReader br = new BufferedReader(new FileReader(fileName));
+        try {
+            StringBuilder sb = new StringBuilder();
+            String line = br.readLine();
+
+            while (line != null) {
+                sb.append(line);
+                sb.append("\n");
+                line = br.readLine();
+            }
+            return sb.toString();
+        } finally {
+            br.close();
+        }
+    }
 }
