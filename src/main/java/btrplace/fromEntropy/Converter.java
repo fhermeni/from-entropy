@@ -23,10 +23,7 @@ import btrplace.btrpsl.ScriptBuilder;
 import btrplace.btrpsl.ScriptBuilderException;
 import btrplace.btrpsl.includes.BasicIncludes;
 import btrplace.json.model.InstanceConverter;
-import btrplace.model.Attributes;
 import btrplace.model.Instance;
-import btrplace.model.Node;
-import btrplace.model.VM;
 import net.minidev.json.JSONObject;
 
 import java.io.*;
@@ -60,38 +57,6 @@ public class Converter {
             // Convert the src file
             ConfigurationConverter conv = new ConfigurationConverter(src);
             Instance i = conv.getInstance();
-
-            //***** Set custom attributes (static) *******
-            Attributes attrs = i.getModel().getAttributes();
-            for (VM vm : i.getModel().getMapping().getAllVMs()) {
-                // Hypervisor
-                //attrs.put(vm, "template", "kvm");
-                // Cannot be re-instantiate
-                attrs.put(vm, "clone", false);
-                // Actions
-                //attrs.put(vm, "boot", 5);
-                // => halt on entropy
-                //attrs.put(vm, "shutdown", 2);
-                attrs.put(vm, "forge", 3);
-                // Migration duration: Memory / 10 :::: BUG (npe)
-                //attrs.put(vm, "migrate",model.getAttributes().getInteger(vm, "memory")/10);
-                attrs.put(vm, "suspend", 4);
-                attrs.put(vm, "resume", 5);
-                attrs.put(vm, "allocate", 5);
-                attrs.put(vm, "kill", 2);
-
-            }
-            for (Node n : i.getModel().getMapping().getAllNodes()) {
-                attrs.put(n, "boot", 6);
-                attrs.put(n, "shutdown", 6);
-            }
-            //**********************************************/
-
-            /* ReconfigurationAlgorithm global parameters
-            ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
-            cra.setTimeLimit(300);
-            cra.doRepair(true);
-            */
 
             // Read the dst file, deduce and add the states constraints
             if (dst != null) {
