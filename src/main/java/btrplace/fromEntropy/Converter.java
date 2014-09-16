@@ -81,7 +81,6 @@ public class Converter {
                 Script scrDC = null;
                 try {
                     // Build the DC script
-                    // TODO: return null there due to the node name (no @)
                     scrDC = scriptBuilder.build(strScriptDC);
 
                 } catch (ScriptBuilderException sbe) {
@@ -129,8 +128,7 @@ public class Converter {
 
                 // Add the resulting constraints
                 if (scrCL.getConstraints() != null) {
-                    //i.getSatConstraints().addAll(scrCL.getConstraints());
-                    System.out.println(scrCL.getConstraints());
+                    i.getSatConstraints().addAll(scrCL.getConstraints());
                 }
             }
 
