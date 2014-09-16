@@ -299,7 +299,7 @@ public class ConfigurationConverter {
     private void nextNodeStates(PBConfiguration.Configuration cfg, List<Node> on, List<Node> off) {
         //Check for the online nodes that go offline
         for (PBNode.Node n : cfg.getOfflinesList()) {
-            Node node = registryNodes.resolve(n.getName());
+            Node node = registryNodes.resolve("@"+n.getName());
             if (map.getOnlineNodes().contains(node)) {
                 off.add(node);
             }
@@ -307,7 +307,7 @@ public class ConfigurationConverter {
 
         //Check for the offline nodes that go online
         for (PBConfiguration.Configuration.Hoster n : cfg.getOnlinesList()) {
-            Node node = registryNodes.resolve(n.getNode().getName());
+            Node node = registryNodes.resolve("@"+n.getNode().getName());
             if (map.getOfflineNodes().contains(node)) {
                 on.add(node);
             }
@@ -415,12 +415,12 @@ public class ConfigurationConverter {
     private Node parse(PBNode.Node pbNode) {
 
         String name = pbNode.getName();
-        Node n = registryNodes.resolve(name);
+        Node n = registryNodes.resolve("@"+name);
         if (n == null) {
             n = new Node(nodeId);
             nodeId++;
             //TODO: Add an '@' to the node name + remove before resolve ?!
-            registryNodes.register(n, name);
+            registryNodes.register(n, "@"+name);
         }
         model.getAttributes().put(n, ENTROPY_ID, name);
 
