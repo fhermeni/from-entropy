@@ -68,6 +68,8 @@ public class Converter {
 
             // Read the script files
             ScriptBuilder scriptBuilder = new ScriptBuilder(i.getModel());
+            //scriptBuilder.setIncludes(new PathBasedIncludes(scriptBuilder,
+            //        new File("src/test/resources")));
             // Read the datacenter script file if exists
             if (scriptDC != null) {
                 String strScriptDC = null;
