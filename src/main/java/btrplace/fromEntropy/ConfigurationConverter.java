@@ -419,7 +419,6 @@ public class ConfigurationConverter {
         if (n == null) {
             n = new Node(nodeId);
             nodeId++;
-            //TODO: Add an '@' to the node name + remove before resolve ?!
             registryNodes.register(n, "@"+name);
         }
         model.getAttributes().put(n, ENTROPY_ID, name);

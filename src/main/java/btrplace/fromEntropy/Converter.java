@@ -18,7 +18,6 @@
 
 package btrplace.fromEntropy;
 
-import btrplace.btrpsl.ErrorMessage;
 import btrplace.btrpsl.Script;
 import btrplace.btrpsl.ScriptBuilder;
 import btrplace.btrpsl.ScriptBuilderException;
@@ -28,8 +27,6 @@ import btrplace.model.Instance;
 import net.minidev.json.JSONObject;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.zip.GZIPOutputStream;
 
 /**
@@ -70,6 +67,7 @@ public class Converter {
             ScriptBuilder scriptBuilder = new ScriptBuilder(i.getModel());
             //scriptBuilder.setIncludes(new PathBasedIncludes(scriptBuilder,
             //        new File("src/test/resources")));
+
             // Read the datacenter script file if exists
             if (scriptDC != null) {
                 String strScriptDC = null;
@@ -84,22 +82,15 @@ public class Converter {
                     scrDC = scriptBuilder.build(strScriptDC);
 
                 } catch (ScriptBuilderException sbe) {
-                    List<ErrorMessage> errorsList = sbe.getErrorReporter().getErrors();
-                    List<JSONObject> errors = new ArrayList<JSONObject>();
-
-                    for (ErrorMessage error : errorsList) {
-                        JSONObject e = new JSONObject();
-                        e.put("row", error.lineNo());
-                        e.put("column", error.colNo());
-                        e.put("message", error.message());
-                        errors.add(e);
-                    }
+                    System.out.println(sbe);
                 }
+
                 // Set the DC script as an include
                 BasicIncludes bi = new BasicIncludes();
                 bi.add(scrDC);
                 scriptBuilder.setIncludes(bi);
             }
+
             // Read the client script file if exists
             if (scriptCL != null) {
                 String strScriptCL = null;
@@ -114,16 +105,7 @@ public class Converter {
                     scrCL = scriptBuilder.build(strScriptCL);
 
                 } catch (ScriptBuilderException sbe) {
-                    List<ErrorMessage> errorsList = sbe.getErrorReporter().getErrors();
-                    List<JSONObject> errors = new ArrayList<JSONObject>();
-
-                    for (ErrorMessage error : errorsList) {
-                        JSONObject e = new JSONObject();
-                        e.put("row", error.lineNo());
-                        e.put("column", error.colNo());
-                        e.put("message", error.message());
-                        errors.add(e);
-                    }
+                    System.out.println(sbe);
                 }
 
                 // Add the resulting constraints
@@ -148,6 +130,7 @@ public class Converter {
 
         } catch (Exception e) {
             System.err.println(e.getMessage());
+            e.printStackTrace();
             System.exit(1);
         } finally {
             if (out != null) {
