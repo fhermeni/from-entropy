@@ -131,30 +131,30 @@ public class ConfigurationConverterTest {
         for (String id : new String[]{"VM2", "VM4", "VM8", "VM14", "VM16"}) {
             VM vm = conv.getRegistryVMs().resolve(id);
             Assert.assertTrue(map.getRunningVMs().contains(vm));
-            Assert.assertEquals(map.getVMLocation(vm), conv.getRegistryNodes().resolve("N1"), id + " should be on N1. Instead:" + conv.getRegistryNodes().resolve(map.getVMLocation(vm)));
+            Assert.assertEquals(map.getVMLocation(vm), conv.getRegistryNodes().resolve("@N1"), id + " should be on N1. Instead:" + conv.getRegistryNodes().resolve(map.getVMLocation(vm)));
         }
 
         for (String id : new String[]{"VM1", "VM7", "VM11", "VM13", "VM17", "VM19"}) {
             VM vm = conv.getRegistryVMs().resolve(id);
             Assert.assertTrue(map.getRunningVMs().contains(vm));
-            Assert.assertEquals(map.getVMLocation(vm), conv.getRegistryNodes().resolve("N2"), id + " should be on N2. Instead:" + conv.getRegistryNodes().resolve(map.getVMLocation(vm)));
+            Assert.assertEquals(map.getVMLocation(vm), conv.getRegistryNodes().resolve("@N2"), id + " should be on N2. Instead:" + conv.getRegistryNodes().resolve(map.getVMLocation(vm)));
         }
 
         for (String id : new String[]{"VM6", "VM9", "VM18"}) {
             VM vm = conv.getRegistryVMs().resolve(id);
             Assert.assertTrue(map.getSleepingVMs().contains(vm));
-            Assert.assertEquals(map.getVMLocation(vm), conv.getRegistryNodes().resolve("N5"), id + " should be on N5. Instead:" + conv.getRegistryNodes().resolve(map.getVMLocation(vm)));
+            Assert.assertEquals(map.getVMLocation(vm), conv.getRegistryNodes().resolve("@N5"), id + " should be on N5. Instead:" + conv.getRegistryNodes().resolve(map.getVMLocation(vm)));
         }
 
         for (String id : new String[]{"VM3", "VM12"}) {
             VM vm = conv.getRegistryVMs().resolve(id);
             Assert.assertTrue(map.getSleepingVMs().contains(vm));
-            Assert.assertEquals(map.getVMLocation(vm), conv.getRegistryNodes().resolve("N7"), id + " should be on N7. Instead:" + conv.getRegistryNodes().resolve(map.getVMLocation(vm)));
+            Assert.assertEquals(map.getVMLocation(vm), conv.getRegistryNodes().resolve("@N7"), id + " should be on N7. Instead:" + conv.getRegistryNodes().resolve(map.getVMLocation(vm)));
         }
 
         VM vm = conv.getRegistryVMs().resolve("VM15");
         Assert.assertTrue(map.getSleepingVMs().contains(vm));
-        Assert.assertEquals(map.getVMLocation(vm), conv.getRegistryNodes().resolve("N10"), "VM15 should be on N10. Instead:" + conv.getRegistryNodes().resolve(map.getVMLocation(vm)));
+        Assert.assertEquals(map.getVMLocation(vm), conv.getRegistryNodes().resolve("@N10"), "VM15 should be on N10. Instead:" + conv.getRegistryNodes().resolve(map.getVMLocation(vm)));
 
         //Check the entropy attribute
         for (VM v : map.getAllVMs()) {
@@ -164,7 +164,7 @@ public class ConfigurationConverterTest {
         }
 
         for (Node n : map.getAllNodes()) {
-            String id = mo.getAttributes().getString(n, ConfigurationConverter.ENTROPY_ID);
+            String id = "@" + mo.getAttributes().getString(n, ConfigurationConverter.ENTROPY_ID);
             Assert.assertEquals(conv.getRegistryNodes().resolve(id), n);
             Assert.assertEquals(conv.getRegistryNodes().resolve(n), id);
         }
