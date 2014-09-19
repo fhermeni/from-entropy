@@ -6,11 +6,10 @@ import btrplace.model.Attributes;
 import btrplace.model.Instance;
 import btrplace.model.VM;
 import btrplace.plan.ReconfigurationPlan;
-import btrplace.plan.event.Action;
 import btrplace.solver.SolverException;
 import btrplace.solver.choco.ChocoReconfigurationAlgorithm;
 import btrplace.solver.choco.DefaultChocoReconfigurationAlgorithm;
-import btrplace.solver.choco.transition.KeepRunningVM;
+import btrplace.solver.choco.runner.SolvingStatistics;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
 import net.minidev.json.parser.ParseException;
@@ -26,7 +25,7 @@ public class Launcher {
     public static void main(String[] args) {
 
         String src = null, dst = null;
-        if (args.length < 3 || args.length > 4 || !args[args.length-2].equals("-o")) {
+        if (args.length < 3 || args.length > 4 || !args[args.length - 2].equals("-o")) {
             usage(1);
         }
 
@@ -39,12 +38,11 @@ public class Launcher {
         if (args[0].equals("--repair")) {
             cra.doRepair(true);
             src = args[1];
-        }
-        else {
+        } else {
             cra.doRepair(false);
             src = args[0];
         }
-        dst = args[args.length-1];
+        dst = args[args.length - 1];
 
         // Read the input JSON instance
         JSONParser parser = new JSONParser(JSONParser.DEFAULT_PERMISSIVE_MODE);
@@ -53,8 +51,7 @@ public class Launcher {
             // Check for gzip extension
             if (src.endsWith(".gz")) {
                 obj = parser.parse(new InputStreamReader(new GZIPInputStream(new FileInputStream(src))));
-            }
-            else {
+            } else {
                 obj = parser.parse(new FileReader(src));
             }
 
@@ -65,7 +62,7 @@ public class Launcher {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        JSONObject o =  (JSONObject) obj;
+        JSONObject o = (JSONObject) obj;
 
         // Convert the json object to an instance
         InstanceConverter conv = new InstanceConverter();
@@ -93,6 +90,13 @@ public class Launcher {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        //Save the plan
+        try {
+            savePlan(dst + ".plan", plan);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public static void setAttributes(Instance i) {
@@ -110,6 +114,7 @@ public class Launcher {
             attrs.put(vm, "forge", 3);
             // Migration duration: Memory/10 => BUG (npe)
             //attrs.put(vm, "migrate", i.getModel().getInteger(vm, "memory") / 10);
+
             //attrs.put(vm, "suspend", 4);
             //attrs.put(vm, "resume", 5);
             //attrs.put(vm, "allocate", 5);
@@ -120,6 +125,14 @@ public class Launcher {
             attrs.put(n, "boot", 6);
             attrs.put(n, "shutdown", 6);
         }*/
+    }
+
+    public static void savePlan(String fileName, ReconfigurationPlan plan) throws IOException {
+        // Write the plan in a specific file
+        FileWriter writerPlan = new FileWriter(fileName+".plan");
+        writerPlan.append(plan.toString());
+        writerPlan.flush();
+        writerPlan.close();
     }
 
     public static void createCSV(String fileName, ReconfigurationPlan plan, ChocoReconfigurationAlgorithm cra) throws IOException {
@@ -134,25 +147,20 @@ public class Launcher {
             writer.append("planActionsSize;" + plan.getActions().size() + '\n');
         }
 
-        for (Action a : plan.getActions()) {
-            if (a instanceof KeepRunningVM) {
-                //writer.append("planRelocateActions;"+plan.getActions());
-            }
-        }
-        writer.append("craSolutionTime;" + cra.getStatistics().getSolutions().get(0).getTime() + '\n');
-
         // Store reconf. algo. stats
-        writer.append("craCoreRPBuildDuration;"+String.valueOf(cra.getStatistics().getCoreRPBuildDuration())+'\n');
-        writer.append("craNbBacktracks;"+String.valueOf(cra.getStatistics().getNbBacktracks())+'\n');
-        writer.append("craNbConstraints;"+String.valueOf(cra.getStatistics().getNbConstraints())+'\n');
-        writer.append("craNbManagedVMs;"+String.valueOf(cra.getStatistics().getNbManagedVMs())+'\n');
-        writer.append("craNbNodes;"+String.valueOf(cra.getStatistics().getNbNodes())+'\n');
-        writer.append("craNbSearchNodes;"+String.valueOf(cra.getStatistics().getNbSearchNodes())+'\n');
-        writer.append("craNbVMs;"+String.valueOf(cra.getStatistics().getNbVMs())+'\n');
-        writer.append("craSolvingDuration;"+String.valueOf(cra.getStatistics().getSolvingDuration())+'\n');
-        writer.append("craNbSolutions;"+String.valueOf(cra.getStatistics().getSolutions().size())+'\n');
-        writer.append("craSpeRPDuration;"+String.valueOf(cra.getStatistics().getSpeRPDuration())+'\n');
-        writer.append("craStart;"+String.valueOf(cra.getStatistics().getStart()));
+        SolvingStatistics stats = cra.getStatistics();
+        writer.append("craStart;"+String.valueOf(stats.getStart()));
+        writer.append("craNbSolutions;"+String.valueOf(stats.getSolutions().size())+'\n');
+        writer.append("craSolutionTime;" + stats.getSolutions().get(0).getTime() + '\n');
+        writer.append("craCoreRPBuildDuration;"+String.valueOf(stats.getCoreRPBuildDuration())+'\n');
+        writer.append("craSpeRPDuration;"+String.valueOf(stats.getSpeRPDuration())+'\n');
+        writer.append("craSolvingDuration;"+String.valueOf(stats.getSolvingDuration())+'\n');
+        writer.append("craNbBacktracks;"+String.valueOf(stats.getNbBacktracks())+'\n');
+        writer.append("craNbConstraints;"+String.valueOf(stats.getNbConstraints())+'\n');
+        writer.append("craNbManagedVMs;"+String.valueOf(stats.getNbManagedVMs())+'\n');
+        writer.append("craNbNodes;"+String.valueOf(stats.getNbNodes())+'\n');
+        writer.append("craNbSearchNodes;"+String.valueOf(stats.getNbSearchNodes())+'\n');
+        writer.append("craNbVMs;"+String.valueOf(stats.getNbVMs())+'\n');
 
         writer.flush();
         writer.close();
@@ -160,9 +168,9 @@ public class Launcher {
 
     public static void usage(int code) {
         System.out.println("Usage: converter [--repair] src -o output");
+        System.out.println("\t--repair: option to enable the 'repair' feature");
         System.out.println("\tsrc: the json instance to read");
         System.out.println("\toutput: the output statistics file.");
-        System.out.println("\t--repair: option to enable the 'repair' feature");
         System.exit(code);
     }
 }
