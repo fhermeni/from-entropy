@@ -226,8 +226,8 @@ public class ConfigurationConverter {
             VM vm = registryVMs.resolve(v.getName());
             if (map.getRunningVMs().contains(vm) || !map.getAllVMs().contains(vm)) {
                 ready.add(vm);
-                seen.add(vm);
             }
+            seen.add(vm);
         }
 
         for (PBConfiguration.Configuration.Hoster hoster : cfg.getOnlinesList()) {
@@ -238,14 +238,13 @@ public class ConfigurationConverter {
                 if (st == PBConfiguration.Configuration.HostedVMState.RUNNING) {
                     if (map.getReadyVMs().contains(vm) || map.getSleepingVMs().contains(vm)) {
                         running.add(vm);
-                        seen.add(vm);
                     }
                 } else { //Sleeping state
                     if (map.getRunningVMs().contains(vm)) {
                         sleeping.add(vm);
-                        seen.add(vm);
                     }
                 }
+                seen.add(vm);
             }
         }
         //The killed VMs
