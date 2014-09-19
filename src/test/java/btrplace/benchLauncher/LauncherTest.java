@@ -17,7 +17,7 @@ public class LauncherTest {
         params[1] = "src/test/resources/r3-nr0-c33-p5000.json";
         params[2] = "-o";
         params[3] = "src/test/resources/r3-nr0-c33-p5000.csv";
-        //Launcher.main(params);
+        Launcher.main(params);
     }
 
     @Test
@@ -28,6 +28,6 @@ public class LauncherTest {
         params[1] = "src/test/resources/r3-nr0-c33-p5000.gz";
         params[2] = "-o";
         params[3] = "src/test/resources/r3-nr0-c33-p5000.gz.csv";
-        //Launcher.main(params);
+        Launcher.main(params);
     }
 }
