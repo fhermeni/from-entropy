@@ -10,32 +10,24 @@ import java.io.IOException;
 public class LauncherTest {
 
     @Test
-    public void testSrc() throws IOException {
+    public void test() throws IOException {
 
-        String[] params = new String[3];
-        params[0] = "src/test/resources/0-src.json";
-        params[1] = "-o";
-        params[2] = "src/test/resources/stats_0-src.csv";
+        String[] params = new String[4];
+        params[0] = "--repair";
+        params[1] = "src/test/resources/r3-nr0-c33-p5000.json";
+        params[2] = "-o";
+        params[3] = "src/test/resources/r3-nr0-c33-p5000.csv";
         //Launcher.main(params);
     }
 
     @Test
-    public void testSrcDst() throws IOException {
+    public void testGZip() throws IOException {
 
-        String[] params = new String[3];
-        params[0] = "src/test/resources/0.json";
-        params[1] = "-o";
-        params[2] = "src/test/resources/stats_0.csv";
-        //Launcher.main(params);
-    }
-
-    @Test
-    public void testAll() throws IOException {
-
-        String[] params = new String[3];
-        params[0] = "src/test/resources/0-c33p5000-c9.json";
-        params[1] = "-o";
-        params[2] = "src/test/resources/stats_0-c33p5000-c9.csv";
+        String[] params = new String[4];
+        params[0] = "--repair";
+        params[1] = "src/test/resources/r3-nr0-c33-p5000.gz";
+        params[2] = "-o";
+        params[3] = "src/test/resources/r3-nr0-c33-p5000.gz.csv";
         //Launcher.main(params);
     }
 }
