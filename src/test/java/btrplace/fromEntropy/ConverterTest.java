@@ -39,7 +39,7 @@ public class ConverterTest {
         params[3] = "src/test/resources/c9.btrp";
         params[4] = "-o";
         params[5] = "src/test/resources/0-c33p5000-c9.json";
-        Converter.main(params);
+        //Converter.main(params);
     }
 
 }
