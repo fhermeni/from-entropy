@@ -138,13 +138,6 @@ public class ConfigurationConverter {
         cstrs = new ArrayList<SatConstraint>();
 
         makeMapping(PBConfiguration.Configuration.parseFrom(new FileInputStream(src)));
-
-        // Add the overbook constraint to all the nodes to respect the memory availability
-        /*
-        for (Node n : map.getAllNodes()) {
-            cstrs.add(new Overbook(n, MEMORY_USAGE, 1));
-        }
-        */
     }
 
     /**
