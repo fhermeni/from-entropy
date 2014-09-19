@@ -11,8 +11,14 @@ public class SeqLauncher {
 
     public static void main(String[] args) {
 
-        //TODO: more arguments
-        String inputFile = args[0];
+        //TODO: to improve + more arguments
+        String inputFile = null;
+        Boolean repair = false;
+        if (args.length < 1 || args.length > 2 || (args.length == 1 && args[0].equals("--repair"))) {
+            usage(1);
+        }
+        if (args[0] == "--repair") { repair = true; inputFile = args[1]; }
+        else { inputFile = args[0]; }
 
         try
         {
@@ -22,18 +28,26 @@ public class SeqLauncher {
 
             while((strLine = br.readLine())!= null)
             {
-                String[] params = new String[4];
-                params[0] = "--repair";
-                params[1] = strLine;
-                params[2] = "-o";
-                params[3] = strLine.substring(0, strLine.lastIndexOf('.')) + ".csv";
-
-                Launcher.main(params);
+                if (repair) {
+                    Launcher.main(new String[]{"--repair", strLine, "-o",
+                            strLine.substring(0, strLine.lastIndexOf('.')) + ".csv"});
+                }
+                else {
+                    Launcher.main(new String[]{strLine, "-o",
+                            strLine.substring(0, strLine.lastIndexOf('.')) + ".csv"});
+                }
             }
 
         }catch(Exception e){
             e.printStackTrace();
             System.out.println(e);
         }
+    }
+
+    public static void usage(int code) {
+        System.out.println("Usage: launcher [--repair] srcFile");
+        System.out.println("\t--repair: option to enable the 'repair' feature");
+        System.out.println("\tsrcFile: the json instance to read, it can also be compressed to a .gz file");
+        System.exit(code);
     }
 }
