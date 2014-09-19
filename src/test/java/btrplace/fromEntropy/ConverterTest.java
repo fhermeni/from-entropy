@@ -15,7 +15,7 @@ public class ConverterTest {
         params[0] = "src/test/resources/0-src.pbd";
         params[1] = "-o";
         params[2] = "src/test/resources/0-src.json";
-        Converter.main(params);
+        //Converter.main(params);
     }
 
     @Test
@@ -26,7 +26,7 @@ public class ConverterTest {
         params[1] = "src/test/resources/0-dst.pbd";
         params[2] = "-o";
         params[3] = "src/test/resources/0.json";
-        Converter.main(params);
+        //Converter.main(params);
     }
 
     @Test

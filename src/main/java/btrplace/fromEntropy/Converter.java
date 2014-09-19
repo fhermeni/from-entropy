@@ -118,6 +118,7 @@ public class Converter {
             InstanceConverter iConv = new InstanceConverter();
             JSONObject o = iConv.toJSON(i);
 
+            // Check for gzip extension
             if (output.endsWith(".gz")) {
                 out = new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(output)));
             } else {
