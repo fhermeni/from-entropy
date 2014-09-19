@@ -6,9 +6,12 @@ import btrplace.model.Attributes;
 import btrplace.model.Instance;
 import btrplace.model.VM;
 import btrplace.plan.ReconfigurationPlan;
+import btrplace.plan.event.MigrateVM;
 import btrplace.solver.SolverException;
 import btrplace.solver.choco.ChocoReconfigurationAlgorithm;
 import btrplace.solver.choco.DefaultChocoReconfigurationAlgorithm;
+import btrplace.solver.choco.duration.DurationEvaluators;
+import btrplace.solver.choco.duration.LinearToAResourceActionDuration;
 import btrplace.solver.choco.runner.SolvingStatistics;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
@@ -31,6 +34,7 @@ public class Launcher {
 
         // Create and customize a reconfiguration algorithm
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
+        DurationEvaluators dev = cra.getDurationEvaluators();
         // TODO: manage with cmdline options
         cra.setTimeLimit(300);
         cra.setVerbosity(0);
@@ -73,8 +77,8 @@ public class Launcher {
             e.printStackTrace();
         }
 
-        //Set custom attributes
-        setAttributes(i);
+        //Set custom actions durations
+        setAttributes(i, dev);
 
         // Try to solve
         ReconfigurationPlan plan = null;
@@ -99,27 +103,26 @@ public class Launcher {
         }
     }
 
-    public static void setAttributes(Instance i) {
+    public static void setAttributes(Instance i, DurationEvaluators dev) {
 
         Attributes attrs = i.getModel().getAttributes();
         for (VM vm : i.getModel().getMapping().getAllVMs()) {
             // Hypervisor
             //attrs.put(vm, "template", "kvm");
-            // Cannot be re-instantiate
-            attrs.put(vm, "clone", true);
-            // Actions
-            //attrs.put(vm, "boot", 5);
-            // => halt on entropy
-            //attrs.put(vm, "shutdown", 2);
-            attrs.put(vm, "forge", 3);
-            // Migration duration: Memory/10 => BUG (npe)
-            //attrs.put(vm, "migrate", i.getModel().getInteger(vm, "memory") / 10);
 
+            // Can be re-instantiated
+            attrs.put(vm, "clone", true);
+
+            // Actions
+            attrs.put(vm, "forge", 3);
+            attrs.put(vm, "kill", 2);
+            // Migration duration: Memory/100
+            dev.register(MigrateVM.class, new LinearToAResourceActionDuration<VM>("memory", 0.01));
+            //attrs.put(vm, "boot", 5);
+            //attrs.put(vm, "shutdown", 2);
             //attrs.put(vm, "suspend", 4);
             //attrs.put(vm, "resume", 5);
             //attrs.put(vm, "allocate", 5);
-            attrs.put(vm, "kill", 2);
-
         }
         /*for (Node n : i.getModel().getMapping().getAllNodes()) {
             attrs.put(n, "boot", 6);
