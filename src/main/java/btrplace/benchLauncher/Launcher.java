@@ -132,7 +132,7 @@ public class Launcher {
 
     public static void savePlan(String fileName, ReconfigurationPlan plan) throws IOException {
         // Write the plan in a specific file
-        FileWriter writerPlan = new FileWriter(fileName+".plan");
+        FileWriter writerPlan = new FileWriter(fileName);
         writerPlan.append(plan.toString());
         writerPlan.flush();
         writerPlan.close();
