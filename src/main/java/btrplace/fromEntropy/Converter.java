@@ -25,8 +25,10 @@ import btrplace.btrpsl.includes.BasicIncludes;
 import btrplace.json.model.InstanceConverter;
 import btrplace.model.Instance;
 import net.minidev.json.JSONObject;
+import org.apache.commons.io.FileUtils;
 
 import java.io.*;
+import java.util.Iterator;
 import java.util.zip.GZIPOutputStream;
 
 /**
@@ -37,20 +39,16 @@ import java.util.zip.GZIPOutputStream;
 public class Converter {
 
     public static void main(String[] args) {
-        String src, dst = null, output, scriptDC = null, scriptCL = null;
+        String src, dst = null, output, scriptDC = null, dirScriptsCL = null;
 
-        if (args.length < 3 || args.length > 6 || args.length == 5 || !args[args.length-2].equals("-o")) {
-            usage(1);
-        }
+        if (args.length < 5 || args.length > 6 || !args[args.length-2].equals("-o")) { usage(1); }
         src = args[0];
         output = args[args.length - 1];
-        if (args.length > 3) {
+        if (args.length > 5) {
             dst = args[1];
-            if (args.length > 5) {
-                scriptDC = args[2];
-                scriptCL = args[3];
-            }
         }
+        scriptDC = args[args.length - 4];
+        dirScriptsCL = args[args.length - 3];
 
         OutputStreamWriter out = null;
         try {
@@ -91,26 +89,34 @@ public class Converter {
                 scriptBuilder.setIncludes(bi);
             }
 
-            // Read the client script file if exists
-            if (scriptCL != null) {
-                String strScriptCL = null;
-                try {
-                    strScriptCL = readFile(scriptCL);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                Script scrCL = null;
-                try {
-                    // Build the DC script
-                    scrCL = scriptBuilder.build(strScriptCL);
+            // Read all the client script files
+            String scriptCL = null, strScriptCL = null;
+            Script scrCL = null;
+            Iterator it = FileUtils.iterateFiles(new File(dirScriptsCL), null, false);
+            while(it.hasNext()) {
+                scriptCL = dirScriptsCL + "/" + ((File) it.next()).getName();
 
-                } catch (ScriptBuilderException sbe) {
-                    System.out.println(sbe);
-                }
+                if (scriptCL != null) {
+                    // Read
+                    try {
+                        strScriptCL = readFile(scriptCL);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
 
-                // Add the resulting constraints
-                if (scrCL.getConstraints() != null) {
-                    i.getSatConstraints().addAll(scrCL.getConstraints());
+                    // Parse
+                    try {
+                        scrCL = scriptBuilder.build(strScriptCL);
+
+                    } catch (ScriptBuilderException sbe) {
+                        System.out.println(sbe);
+                        sbe.printStackTrace();
+                    }
+
+                    // Add the resulting constraints
+                    if (scrCL.getConstraints() != null) {
+                        i.getSatConstraints().addAll(scrCL.getConstraints());
+                    }
                 }
             }
 
@@ -146,11 +152,11 @@ public class Converter {
     }
 
     public static void usage(int code) {
-        System.out.println("Usage: converter src [dst] [scriptDC] [scriptCL] -o output");
+        System.out.println("Usage: converter src [dst] scriptDC dirScriptsCL -o output");
         System.out.println("\tsrc: the configuration in protobuf format to convert");
-        System.out.println("\tdst: an optional configuration that will be used to get the VMs and nodes state change");
-        System.out.println("\tscriptDC: an optional btrpsl script file that describe the datacenter");
-        System.out.println("\tscriptCL: an optional btrpsl script file that describe constraints");
+        System.out.println("\tdst: an optional dst configuration in protobuf format");
+        System.out.println("\tscriptDC: the btrpsl script file that describe the datacenter");
+        System.out.println("\tdirScriptsCL: the directory where are located the client btrpsl script files");
         System.out.println("\toutput: the output JSON file. Ends with '.gz' for an automatic compression");
         System.exit(code);
     }
