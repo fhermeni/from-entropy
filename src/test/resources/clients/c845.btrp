@@ -1,0 +1,12 @@
+namespace clients.c845;
+
+import datacenter;
+
+VM[1..7]: c40m300<clone,boot=4, shutdown=5>;
+VM[8..15]: c40m200<clone,boot=9, shutdown=10>;
+VM[16..27]: c60m300<clone,boot=5, shutdown=6>;
+
+$T1 = VM[1..7];
+$T2 = VM[8..15];
+$T3 = VM[16..27];
+export $me to *;

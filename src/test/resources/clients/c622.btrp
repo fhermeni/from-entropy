@@ -1,0 +1,12 @@
+namespace clients.c622;
+
+import datacenter;
+
+VM[1..17]: c30m200<clone,boot=4, shutdown=5>;
+VM[18..22]: c50m100<clone,boot=9, shutdown=10>;
+VM[23..27]: c60m200<clone,boot=5, shutdown=6>;
+
+$T1 = VM[1..17];
+$T2 = VM[18..22];
+$T3 = VM[23..27];
+export $me to *;
