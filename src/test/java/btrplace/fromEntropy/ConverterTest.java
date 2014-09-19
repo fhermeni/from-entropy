@@ -42,4 +42,16 @@ public class ConverterTest {
         //Converter.main(params);
     }
 
+    @Test
+    public void testAllGZip() throws IOException {
+
+        String[] params = new String[6];
+        params[0] = "src/test/resources/0-src.pbd";
+        params[1] = "src/test/resources/0-dst.pbd";
+        params[2] = "src/test/resources/datacenter.btrp";
+        params[3] = "src/test/resources/c9.btrp";
+        params[4] = "-o";
+        params[5] = "src/test/resources/0-c33p5000-c9.gz";
+        Converter.main(params);
+    }
 }
