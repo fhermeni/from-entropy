@@ -17,7 +17,7 @@ public class SeqLauncher {
         if (args.length < 1 || args.length > 2 || (args.length == 1 && args[0].equals("--repair"))) {
             usage(1);
         }
-        if (args[0] == "--repair") { repair = true; inputFile = args[1]; }
+        if (args[0].equals("--repair")) { repair = true; inputFile = args[1]; }
         else { inputFile = args[0]; }
 
         try
