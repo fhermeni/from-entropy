@@ -12,26 +12,24 @@ public class ConverterTest {
     @Test
     public void test() throws IOException {
 
-        String[] params = new String[6];
-        params[0] = "src/test/resources/r3-nr0-src.pbd";
-        params[1] = "src/test/resources/r3-nr0-dst.pbd";
-        params[2] = "src/test/resources/datacenter.btrp";
-        params[3] = "src/test/resources/clients";
-        params[4] = "-o";
-        params[5] = "src/test/resources/r3-nr0-c33-p5000.json";
-        Converter.main(params);
+        Converter.main(new String[]{
+                "src/test/resources/r3-nr0-src.pbd",
+                "src/test/resources/r3-nr0-dst.pbd",
+                "src/test/resources/datacenter.btrp",
+                "src/test/resources/clients",
+                "-o", "src/test/resources/r3-c33-p5000-nr-0c.json"
+        });
     }
 
     @Test
     public void testGZip() throws IOException {
 
-        String[] params = new String[6];
-        params[0] = "src/test/resources/r3-nr0-src.pbd";
-        params[1] = "src/test/resources/r3-nr0-dst.pbd";
-        params[2] = "src/test/resources/datacenter.btrp";
-        params[3] = "src/test/resources/clients";
-        params[4] = "-o";
-        params[5] = "src/test/resources/r3-nr0-c33-p5000.gz";
-        Converter.main(params);
+        Converter.main(new String[]{
+                "src/test/resources/r3-nr0-src.pbd",
+                "src/test/resources/r3-nr0-dst.pbd",
+                "src/test/resources/datacenter.btrp",
+                "src/test/resources/clients",
+                "-o", "src/test/resources/r3-c33-p5000-nr-0c.gz"
+        });
     }
 }
