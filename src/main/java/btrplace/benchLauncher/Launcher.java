@@ -88,18 +88,20 @@ public class Launcher {
             e.printStackTrace();
         }
 
-        // Save stats to a CSV file
-        try {
-            createCSV(dst, plan, cra);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        if (plan != null) {
+            // Save stats to a CSV file
+            try {
+                createCSV(dst, plan, cra);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
-        //Save the plan
-        try {
-            savePlan(dst + ".plan", plan);
-        } catch (IOException e) {
-            e.printStackTrace();
+            //Save the plan
+            try {
+                savePlan(stripExtension(dst) + ".plan", plan);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -154,7 +156,9 @@ public class Launcher {
         SolvingStatistics stats = cra.getStatistics();
         writer.append("craStart;"+String.valueOf(stats.getStart()));
         writer.append("craNbSolutions;"+String.valueOf(stats.getSolutions().size())+'\n');
-        writer.append("craSolutionTime;" + stats.getSolutions().get(0).getTime() + '\n');
+        if(stats.getSolutions().size() > 0) {
+            writer.append("craSolutionTime;" + stats.getSolutions().get(0).getTime() + '\n');
+        }
         writer.append("craCoreRPBuildDuration;"+String.valueOf(stats.getCoreRPBuildDuration())+'\n');
         writer.append("craSpeRPDuration;"+String.valueOf(stats.getSpeRPDuration())+'\n');
         writer.append("craSolvingDuration;"+String.valueOf(stats.getSolvingDuration())+'\n');
