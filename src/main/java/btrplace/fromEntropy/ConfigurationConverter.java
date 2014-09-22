@@ -253,24 +253,19 @@ public class ConfigurationConverter {
                 killed.add(vm);
             }
         }
-
     }
 
     private void nextNodeStates(PBConfiguration.Configuration cfg, List<Node> on, List<Node> off) {
         //Check for the online nodes that go offline
         for (PBNode.Node n : cfg.getOfflinesList()) {
             Node node = registryNodes.resolve("@"+n.getName());
-            if (map.getOnlineNodes().contains(node)) {
-                off.add(node);
-            }
+            off.add(node);
         }
 
         //Check for the offline nodes that go online
         for (PBConfiguration.Configuration.Hoster n : cfg.getOnlinesList()) {
             Node node = registryNodes.resolve("@"+n.getNode().getName());
-            if (map.getOfflineNodes().contains(node)) {
-                on.add(node);
-            }
+            on.add(node);
         }
     }
 
