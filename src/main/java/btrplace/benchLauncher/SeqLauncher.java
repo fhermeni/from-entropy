@@ -30,18 +30,23 @@ public class SeqLauncher {
             {
                 if (repair) {
                     Launcher.main(new String[]{"--repair", strLine, "-o",
-                            strLine.substring(0, strLine.lastIndexOf('.')) + ".csv"});
+                            stripExtension(strLine) + ".csv"});
                 }
                 else {
                     Launcher.main(new String[]{strLine, "-o",
-                            strLine.substring(0, strLine.lastIndexOf('.')) + ".csv"});
+                            stripExtension(strLine) + ".csv"});
                 }
             }
 
-        }catch(Exception e){
+        } catch(Exception e){
             e.printStackTrace();
             System.out.println(e);
         }
+    }
+
+    public static String stripExtension(final String s)
+    {
+        return s != null && s.lastIndexOf(".") > 0 ? s.substring(0, s.lastIndexOf(".")) : s;
     }
 
     public static void usage(int code) {
