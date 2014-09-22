@@ -173,6 +173,11 @@ public class Launcher {
         writer.close();
     }
 
+    public static String stripExtension(final String s)
+    {
+        return s != null && s.lastIndexOf(".") > 0 ? s.substring(0, s.lastIndexOf(".")) : s;
+    }
+
     public static void usage(int code) {
         System.out.println("Usage: converter [--repair] src -o output");
         System.out.println("\t--repair: option to enable the 'repair' feature");
