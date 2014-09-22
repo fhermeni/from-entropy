@@ -1,0 +1,16 @@
+namespace clients.c100;
+
+import datacenter;
+
+VM[1..4]: c40m300<clone,boot=4, shutdown=5>;
+VM[5..7]: c60m300<clone,boot=9, shutdown=10>;
+VM[8..11]: c50m300<clone,boot=5, shutdown=6>;
+
+$T1 = VM[1..4];
+$T2 = VM[5..7];
+$T3 = VM[8..11];
+for $t in $T[1..3] {
+	spread($t);
+}
+among($T3, $datacenter.leafs);
+export $me to *;

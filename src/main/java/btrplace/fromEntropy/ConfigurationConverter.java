@@ -18,9 +18,9 @@
 
 package btrplace.fromEntropy;
 
-import btrplace.json.model.Instance;
 import btrplace.model.*;
 import btrplace.model.constraint.*;
+import btrplace.model.view.NamingService;
 import btrplace.model.view.ShareableResource;
 import entropy.configuration.parser.PBConfiguration;
 import entropy.configuration.parser.PBNode;
@@ -62,9 +62,11 @@ public class ConfigurationConverter {
 
     private ShareableResource rcMem, rcCpu, rcNbCPUs;
 
-    private Map<String, UUID> registry;
+    private NamingService<Node> registryNodes;
+    private int nodeId = 0;
+    private NamingService<VM> registryVMs;
+    private int vmId = 0;
 
-    private Map<UUID, String> revRegistry;
 
     private List<SatConstraint> cstrs;
 
@@ -115,25 +117,27 @@ public class ConfigurationConverter {
      * @throws IOException if an error occurred while parsing the configuration
      */
     public ConfigurationConverter(String src) throws IOException {
-        map = new DefaultMapping();
-        model = new DefaultModel(map);
+
+        model = new DefaultModel();
+        map = model.getMapping();
 
         rcMem = new ShareableResource(MEMORY_USAGE);
         rcCpu = new ShareableResource(UCPU_USAGE);
         rcNbCPUs = new ShareableResource(NB_CPUS);
+
         model.attach(rcCpu);
         model.attach(rcMem);
         model.attach(rcNbCPUs);
 
-        registry = new HashMap<String, UUID>();
-        revRegistry = new HashMap<UUID, String>();
+        registryNodes = NamingService.newNodeNS();
+        registryVMs = NamingService.newVMNS();
+
+        model.attach(registryNodes);
+        model.attach(registryVMs);
+
         cstrs = new ArrayList<SatConstraint>();
 
         makeMapping(PBConfiguration.Configuration.parseFrom(new FileInputStream(src)));
-
-        cstrs.add(new Overbook(map.getAllNodes(), MEMORY_USAGE, 1));
-        cstrs.add(new Overbook(map.getAllNodes(), UCPU_USAGE, 1));
-
     }
 
     /**
@@ -161,40 +165,54 @@ public class ConfigurationConverter {
         PBConfiguration.Configuration cfg = PBConfiguration.Configuration.parseFrom(new FileInputStream(dst));
 
         //Nodes states
-        Online on = new Online(new HashSet<UUID>());
-        Offline off = new Offline(new HashSet<UUID>());
+        List<Node> on = new ArrayList<Node>();
+        List<Node> off = new ArrayList<Node>();
+
         //VMs states
-        Ready ready = new Ready(new HashSet<UUID>());
-        Running running = new Running(new HashSet<UUID>());
-        Sleeping sleeping = new Sleeping(new HashSet<UUID>());
-        Killed killed = new Killed(new HashSet<UUID>());
+        List<VM> ready = new ArrayList<VM>();
+        List<VM> running = new ArrayList<VM>();
+        List<VM> sleeping = new ArrayList<VM>();
+        List<VM> killed = new ArrayList<VM>();
 
         nextNodeStates(cfg, on, off);
         nextVMStates(cfg, ready, running, sleeping, killed);
 
-        if (!on.getInvolvedNodes().isEmpty()) {
-            states.add(on);
+        if (!on.isEmpty()) {
+            for (SatConstraint nc : Online.newOnline(on)){
+                states.add(nc);
+            }
         }
-        if (!off.getInvolvedNodes().isEmpty()) {
-            states.add(off);
+        if (!off.isEmpty()) {
+            for (SatConstraint nc : Offline.newOffline(off)){
+                states.add(nc);
+            }
         }
-        if (!ready.getInvolvedVMs().isEmpty()) {
-            states.add(ready);
+
+        if (!ready.isEmpty()) {
+            for (SatConstraint r : Ready.newReady(ready)){
+                states.add(r);
+            }
         }
-        if (!running.getInvolvedVMs().isEmpty()) {
-            states.add(running);
+        if (!running.isEmpty()) {
+            for (SatConstraint r : Running.newRunning(running)){
+                states.add(r);
+            }
         }
-        if (!killed.getInvolvedVMs().isEmpty()) {
-            states.add(killed);
+        if (!killed.isEmpty()) {
+            for (SatConstraint k : Killed.newKilled(killed)){
+                states.add(k);
+            }
         }
-        if (!sleeping.getInvolvedVMs().isEmpty()) {
-            states.add(ready);
+        if (!sleeping.isEmpty()) {
+            for (SatConstraint s : Sleeping.newSleeping(sleeping)){
+                states.add(s);
+            }
         }
 
         return states;
     }
 
-    private void nextVMStates(PBConfiguration.Configuration cfg, Ready ready, Running running, Sleeping sleeping, Killed killed) {
+    private void nextVMStates(PBConfiguration.Configuration cfg, List<VM> ready, List<VM> running, List<VM> sleeping, List<VM> killed) {
 
         /*
           (none || running) -> ready : ready()
@@ -203,51 +221,51 @@ public class ConfigurationConverter {
           running -> sleeping : sleeping()
          */
 
-        Set<UUID> seen = new HashSet<UUID>();
-        for (PBVirtualMachine.VirtualMachine vm : cfg.getWaitingsList()) {
-            UUID u = registry.get(vm.getName());
-            if (map.getRunningVMs().contains(u) || !map.getAllVMs().contains(u)) {
-                ready.getInvolvedVMs().add(u);
-                seen.add(u);
+        Set<VM> seen = new HashSet<VM>();
+        for (PBVirtualMachine.VirtualMachine v : cfg.getWaitingsList()) {
+            VM vm = registryVMs.resolve(v.getName());
+            if (map.getRunningVMs().contains(vm) || !map.getAllVMs().contains(vm)) {
+                ready.add(vm);
             }
+            seen.add(vm);
         }
 
         for (PBConfiguration.Configuration.Hoster hoster : cfg.getOnlinesList()) {
             for (PBConfiguration.Configuration.Hosted hosted : hoster.getHostedList()) {
                 PBConfiguration.Configuration.HostedVMState st = hosted.getState();
-                String vm = hosted.getVm().getName();
-                UUID u = registry.get(vm);
+                String vname = hosted.getVm().getName();
+                VM vm = registryVMs.resolve(vname);
                 if (st == PBConfiguration.Configuration.HostedVMState.RUNNING) {
-                    if (map.getReadyVMs().contains(u) || map.getSleepingVMs().contains(u) || map.getRunningVMs().contains(u)) {
-                        running.getInvolvedVMs().add(u);
-                        seen.add(u);
+                    if (map.getReadyVMs().contains(vm) || map.getSleepingVMs().contains(vm)) {
+                        running.add(vm);
                     }
                 } else { //Sleeping state
-                    if (map.getRunningVMs().contains(u)) {
-                        sleeping.getInvolvedVMs().add(u);
-                        seen.add(u);
+                    if (map.getRunningVMs().contains(vm)) {
+                        sleeping.add(vm);
                     }
                 }
+                seen.add(vm);
             }
         }
         //The killed VMs
-        for (UUID vm : map.getAllVMs()) {
+        for (VM vm : map.getAllVMs()) {
             if (!seen.contains(vm)) {
-                killed.getInvolvedVMs().add(vm);
+                killed.add(vm);
             }
         }
-
     }
 
-    private void nextNodeStates(PBConfiguration.Configuration cfg, Online on, Offline off) {
+    private void nextNodeStates(PBConfiguration.Configuration cfg, List<Node> on, List<Node> off) {
+        //Check for the online nodes that go offline
         for (PBNode.Node n : cfg.getOfflinesList()) {
-            UUID u = registry.get(n.getName());
-            off.getInvolvedNodes().add(u);
+            Node node = registryNodes.resolve("@"+n.getName());
+            off.add(node);
         }
 
+        //Check for the offline nodes that go online
         for (PBConfiguration.Configuration.Hoster n : cfg.getOnlinesList()) {
-            UUID u = registry.get(n.getNode().getName());
-            on.getInvolvedNodes().add(u);
+            Node node = registryNodes.resolve("@"+n.getNode().getName());
+            on.add(node);
         }
     }
 
@@ -261,21 +279,21 @@ public class ConfigurationConverter {
     }
 
     /**
-     * Get the registry that convert entropy to btrplace identifiers.
+     * Get the registry that convert entropy to btrplace nodes identifiers.
      *
      * @return a mapping of elements
      */
-    public Map<String, UUID> getRegistry() {
-        return registry;
+    public NamingService<Node> getRegistryNodes() {
+        return registryNodes;
     }
 
     /**
-     * Get the registry that convert btrplace identifiers to entropy ones.
+     * Get the registry that convert entropy to btrplace vms identifiers.
      *
      * @return a mapping of elements
      */
-    public Map<UUID, String> getReverseRegistry() {
-        return revRegistry;
+    public NamingService<VM> getRegistryVMs() {
+        return registryVMs;
     }
 
     /**
@@ -293,107 +311,108 @@ public class ConfigurationConverter {
      * @param pbVM the virtual machine to convert.
      * @return the VM identifier
      */
-    private UUID parse(PBVirtualMachine.VirtualMachine pbVM) {
+    private VM parse(PBVirtualMachine.VirtualMachine pbVM) {
 
         String name = pbVM.getName();
-        UUID u = registry.get(name);
-        if (u == null) {
-            u = nextUUID();
-            registry.put(name, u);
-            revRegistry.put(u, name);
+        VM vm = registryVMs.resolve(name);
+        if (vm == null) {
+            vm = new VM(vmId);
+            vmId++;
+            registryVMs.register(vm, name);
         }
-        model.getAttributes().put(u, ENTROPY_ID, name);
+        model.getAttributes().put(vm, ENTROPY_ID, name);
         if (pbVM.hasCpuConsumption()) {
-            rcCpu.set(u, pbVM.getCpuConsumption());
+            rcCpu.setConsumption(vm, pbVM.getCpuConsumption());
         }
 
-        if (pbVM.hasCpuDemand() && pbVM.getCpuDemand() != rcCpu.get(u)) {
-            cstrs.add(new Preserve(Collections.singleton(u), UCPU_USAGE, pbVM.getCpuDemand()));
+        if (pbVM.hasCpuDemand() && pbVM.getCpuDemand() != rcCpu.getConsumption(vm)) {
+            cstrs.add(new Preserve(vm, UCPU_USAGE, pbVM.getCpuDemand()));
         }
 
         if (pbVM.hasCpuMax()) {
-            model.getAttributes().put(u, UCPU_MAX, pbVM.getCpuMax());
+            model.getAttributes().put(vm, UCPU_MAX, pbVM.getCpuMax());
         }
 
         if (pbVM.hasMemoryConsumption()) {
-            rcMem.set(u, pbVM.getMemoryConsumption());
+            rcMem.setConsumption(vm, pbVM.getMemoryConsumption());
         }
 
-        if (pbVM.hasMemoryDemand() && pbVM.getMemoryDemand() != rcMem.get(u)) {
-            cstrs.add(new Preserve(Collections.singleton(u), MEMORY_USAGE, pbVM.getMemoryDemand()));
+        if (pbVM.hasMemoryDemand() && pbVM.getMemoryDemand() != rcMem.getConsumption(vm)) {
+            cstrs.add(new Preserve(vm, MEMORY_USAGE, pbVM.getMemoryDemand()));
         }
 
         if (pbVM.hasTemplate()) {
-            model.getAttributes().put(u, TEMPLATE, pbVM.getTemplate());
+            model.getAttributes().put(vm, TEMPLATE, pbVM.getTemplate());
         }
 
         if (pbVM.hasNbOfCPUs()) {
-            rcNbCPUs.set(u, pbVM.getNbOfCPUs());
+            rcNbCPUs.setConsumption(vm, pbVM.getNbOfCPUs());
         }
 
         for (PBVirtualMachine.VirtualMachine.Option opt : pbVM.getOptionsList()) {
             String k = opt.getKey();
             if (opt.hasValue()) {
-                model.getAttributes().castAndPut(u, k, opt.getValue());
+                model.getAttributes().castAndPut(vm, k, opt.getValue());
             } else {
-                model.getAttributes().put(u, k, true);
+                model.getAttributes().put(vm, k, true);
             }
         }
 
-        return u;
+        return vm;
     }
 
     /**
      * Un-serialize the protobuf version of a node
      *
      * @param pbNode the node to convert.
-     * @return the VM identifier
+     * @return the Node
      */
-    private UUID parse(PBNode.Node pbNode) {
+    private Node parse(PBNode.Node pbNode) {
 
         String name = pbNode.getName();
-        UUID u = registry.get(name);
-        if (u == null) {
-            u = nextUUID();
-            registry.put(name, u);
-            revRegistry.put(u, name);
+        Node n = registryNodes.resolve("@"+name);
+        if (n == null) {
+            n = new Node(nodeId);
+            nodeId++;
+            registryNodes.register(n, "@"+name);
         }
-        model.getAttributes().put(u, ENTROPY_ID, name);
+        model.getAttributes().put(n, ENTROPY_ID, name);
+
         if (pbNode.hasNbOfCPUs()) {
-            rcNbCPUs.set(u, pbNode.getNbOfCPUs());
+            rcNbCPUs.setCapacity(n, pbNode.getNbOfCPUs());
         }
 
         if (pbNode.hasCpuCapacity()) {
-            rcCpu.set(u, pbNode.getCpuCapacity());
+            rcCpu.setCapacity(n, pbNode.getCpuCapacity());
         }
 
         if (pbNode.hasMemoryCapacity()) {
-            rcMem.set(u, pbNode.getMemoryCapacity());
+            rcMem.setCapacity(n, pbNode.getMemoryCapacity());
         }
 
         if (pbNode.hasIp()) {
-            model.getAttributes().put(u, IP, pbNode.getIp());
+            model.getAttributes().put(n, IP, pbNode.getIp());
         }
 
         if (pbNode.hasMac()) {
-            model.getAttributes().put(u, MAC, pbNode.getMac());
+            model.getAttributes().put(n, MAC, pbNode.getMac());
         }
 
         for (PBNode.Node.Platform p : pbNode.getPlatformsList()) {
             for (PBNode.Node.Platform.Option o : p.getOptionsList()) {
                 String k = o.getKey();
                 if (o.hasValue()) {
-                    model.getAttributes().castAndPut(u, k, o.getValue());
+                    model.getAttributes().castAndPut(n, k, o.getValue());
                 } else {
-                    model.getAttributes().put(u, k, true);
+                    model.getAttributes().put(n, k, true);
                 }
             }
         }
 
         if (pbNode.hasCurrentPlatform()) {
-            model.getAttributes().put(u, TEMPLATE, pbNode.getCurrentPlatform());
+            model.getAttributes().put(n, TEMPLATE, pbNode.getCurrentPlatform());
         }
-        return u;
+        return n;
     }
 
     private void makeMapping(PBConfiguration.Configuration c) {
@@ -405,11 +424,11 @@ public class ConfigurationConverter {
             map.addReadyVM(parse(vm));
         }
         for (PBConfiguration.Configuration.Hoster h : c.getOnlinesList()) {
-            UUID n = parse(h.getNode());
+            Node n = parse(h.getNode());
             map.addOnlineNode(n);
             for (PBConfiguration.Configuration.Hosted hosted : h.getHostedList()) {
                 PBConfiguration.Configuration.HostedVMState st = hosted.getState();
-                UUID vm = parse(hosted.getVm());
+                VM vm = parse(hosted.getVm());
                 switch (st) {
                     case RUNNING:
                         map.addRunningVM(vm, n);
@@ -428,19 +447,6 @@ public class ConfigurationConverter {
      * @return an instance
      */
     public Instance getInstance() {
-        return new Instance(model, cstrs);
-    }
-
-    private long low = 0, high = 0;
-
-    /**
-     * Generate the next UUID.
-     */
-    private UUID nextUUID() {
-        if (low + 1 == 0) {  //Low is back to 0, so high++
-            high++;
-        }
-        low++;
-        return new UUID(high, low);
+        return new Instance(model, cstrs, new MinMTTR());
     }
 }

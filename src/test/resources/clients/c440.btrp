@@ -1,0 +1,12 @@
+namespace clients.c440;
+
+import datacenter;
+
+VM[1..11]: c40m300<clone,boot=4, shutdown=5>;
+VM[12..16]: c30m100<clone,boot=9, shutdown=10>;
+VM[17..21]: c50m300<clone,boot=5, shutdown=6>;
+
+$T1 = VM[1..11];
+$T2 = VM[12..16];
+$T3 = VM[17..21];
+export $me to *;
