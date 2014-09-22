@@ -12,6 +12,6 @@ public class SeqLauncherTest {
     @Test
     public void test() throws IOException {
 
-        SeqLauncher.main(new String[]{"--repair", "src/test/resources/benchList.txt"});
+        //SeqLauncher.main(new String[]{"--repair", "src/test/resources/benchList.txt"});
     }
 }
