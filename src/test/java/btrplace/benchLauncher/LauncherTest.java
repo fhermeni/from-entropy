@@ -12,22 +12,23 @@ public class LauncherTest {
     @Test
     public void test() throws IOException {
 
-        String[] params = new String[4];
-        params[0] = "--repair";
-        params[1] = "src/test/resources/r3-nr0-c33-p5000.json";
-        params[2] = "-o";
-        params[3] = "src/test/resources/r3-nr0-c33-p5000.csv";
-        Launcher.main(params);
+        Launcher.main(new String[]{"--repair", "src/test/resources/r3-c33-p5000-nr-0c.json",
+                "-o", "src/test/resources/r3-c33-p5000-nr-0c.csv"});
     }
 
     @Test
     public void testGZip() throws IOException {
 
-        String[] params = new String[4];
-        params[0] = "--repair";
-        params[1] = "src/test/resources/r3-nr0-c33-p5000.gz";
-        params[2] = "-o";
-        params[3] = "src/test/resources/r3-nr0-c33-p5000.gz.csv";
-        Launcher.main(params);
+        Launcher.main(new String[]{"--repair", "src/test/resources/r3-c33-p5000-nr-0c.gz",
+                "-o", "src/test/resources/r3-c33-p5000-nr-0c.csv"});
+    }
+
+    @Test
+    public void testR6() throws IOException {
+
+        Launcher.main(new String[]{"--repair",
+                "src/test/resources/wkld-tdsc_p5000/r6-c0p5000-li/0-c.gz",
+                "-o", "src/test/resources/r6-c0-p5000-li-0c.csv"
+        });
     }
 }
