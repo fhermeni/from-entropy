@@ -1,6 +1,6 @@
 #!/bin/sh
 
-JAVA_OPTS="-mx4G -ms4G"
+JAVA_OPTS="-server -da -Xmx10G -Xms10G"
 #Define the classpath
 JARS=`ls jar/*.jar`
 
