@@ -90,6 +90,7 @@ public class Launcher {
         // Try to solve
         ReconfigurationPlan plan = null;
 
+        /************** PATCH **************/
         ModelView v = i.getModel().getView(ShareableResource.VIEW_ID_BASE + ConfigurationConverter.NB_CPUS);
         i.getModel().detach(v);
         //State constraints;
@@ -102,6 +103,7 @@ public class Launcher {
         for (VM vm : i.getModel().getMapping().getAllVMs()) {
             i.getSatConstraints().add(new NoDelay(vm));
         }
+        /************************************/
 
         /* DEBUG: Remove constraints
         for (Iterator<SatConstraint> ite = i.getSatConstraints().iterator(); ite.hasNext(); ){
@@ -123,13 +125,14 @@ public class Launcher {
             System.out.println(cra.getStatistics());
         }
 
+        // Save stats to a CSV file
+        try {
+            createCSV(dst, plan, cra);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         if (plan != null) {
-            // Save stats to a CSV file
-            try {
-                createCSV(dst, plan, cra);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
 
             //Save the plan
             try {
@@ -178,32 +181,56 @@ public class Launcher {
     public static void createCSV(String fileName, ReconfigurationPlan plan, ChocoReconfigurationAlgorithm cra) throws IOException {
 
         FileWriter writer = new FileWriter(fileName);
-        writer.append("metric;value\n");
-
-        // Store plan parameters
-        if (plan != null) {
-            writer.append("planDuration;" + plan.getDuration() + '\n');
-            writer.append("planSize;" + plan.getSize() + '\n');
-            writer.append("planActionsSize;" + plan.getActions().size() + '\n');
-        }
-
-        // Store reconf. algo. stats
         SolvingStatistics stats = cra.getStatistics();
-        writer.append("craStart;"+String.valueOf(stats.getStart()));
-        writer.append("craNbSolutions;"+String.valueOf(stats.getSolutions().size())+'\n');
-        if(stats.getSolutions().size() > 0) {
-            writer.append("craSolutionTime;" + stats.getSolutions().get(0).getTime() + '\n');
-        }
-        writer.append("craCoreRPBuildDuration;"+String.valueOf(stats.getCoreRPBuildDuration())+'\n');
-        writer.append("craSpeRPDuration;"+String.valueOf(stats.getSpeRPDuration())+'\n');
-        writer.append("craSolvingDuration;"+String.valueOf(stats.getSolvingDuration())+'\n');
-        writer.append("craNbBacktracks;"+String.valueOf(stats.getNbBacktracks())+'\n');
-        writer.append("craNbConstraints;"+String.valueOf(stats.getNbConstraints())+'\n');
-        writer.append("craNbManagedVMs;"+String.valueOf(stats.getNbManagedVMs())+'\n');
-        writer.append("craNbNodes;"+String.valueOf(stats.getNbNodes())+'\n');
-        writer.append("craNbSearchNodes;"+String.valueOf(stats.getNbSearchNodes())+'\n');
-        writer.append("craNbVMs;"+String.valueOf(stats.getNbVMs())+'\n');
 
+        // Set header
+        if (plan != null) {
+            writer.append("planDuration;planSize;planActionsSize;");
+        }
+        if (stats != null) {
+            writer.append("craStart;craNbSolutions;");
+            if (stats.getSolutions().size() > 0) {
+                writer.append("craSolutionTime;");
+            }
+            writer.append("craCoreRPBuildDuration;" +
+                    "craSpeRPDuration;" +
+                    "craSolvingDuration;" +
+                    "craNbBacktracks;" +
+                    "craNbConstraints;" +
+                    "craNbManagedVMs;" +
+                    "craNbNodes;" +
+                    "craNbSearchNodes;" +
+                    "craNbVMs" + '\n'
+            );
+        }
+
+        // Store values
+        if (plan != null) {
+            writer.append(String.valueOf(plan.getDuration()) + ';' +
+                    String.valueOf(plan.getSize()) + ';' +
+                    String.valueOf(plan.getActions().size()) + ';'
+            );
+        }
+        if (stats != null) {
+            writer.append(String.valueOf(stats.getStart()) + ';' +
+                    String.valueOf(stats.getSolutions().size()) + ';'
+            );
+            if (stats.getSolutions().size() > 0) {
+                writer.append(String.valueOf(stats.getSolutions().get(0).getTime()) + ';');
+            }
+            writer.append(String.valueOf(stats.getCoreRPBuildDuration()) + ';' +
+                    String.valueOf(stats.getSpeRPDuration()) + ';' +
+                    String.valueOf(stats.getSolvingDuration()) + ';' +
+                    String.valueOf(stats.getNbBacktracks()) + ';' +
+                    String.valueOf(stats.getNbConstraints()) + ';' +
+                    String.valueOf(stats.getNbManagedVMs()) + ';' +
+                    String.valueOf(stats.getNbNodes()) + ';' +
+                    String.valueOf(stats.getNbSearchNodes()) + ';' +
+                    String.valueOf(stats.getNbVMs()) + '\n'
+            );
+        }
+
+        // Close the file
         writer.flush();
         writer.close();
     }
