@@ -103,6 +103,16 @@ public class Launcher {
             i.getSatConstraints().add(new NoDelay(vm));
         }
 
+        /* DEBUG: Remove constraints
+        for (Iterator<SatConstraint> ite = i.getSatConstraints().iterator(); ite.hasNext(); ){
+            SatConstraint s = ite.next();
+            if (s instanceof Among) {
+                ite.remove();
+                s.setContinuous(false);
+            }
+        }
+        */
+
         try {
             //cra.setVerbosity(3);
             cra.doOptimize(false);
