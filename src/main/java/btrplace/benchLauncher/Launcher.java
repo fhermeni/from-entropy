@@ -7,6 +7,7 @@ import btrplace.model.Attributes;
 import btrplace.model.Instance;
 import btrplace.model.Node;
 import btrplace.model.VM;
+import btrplace.model.constraint.NoDelay;
 import btrplace.model.constraint.Offline;
 import btrplace.model.constraint.Online;
 import btrplace.model.view.ModelView;
@@ -98,7 +99,9 @@ public class Launcher {
         for (Node n : i.getModel().getMapping().getOfflineNodes()) {
             i.getSatConstraints().add(new Offline(n));
         }
-
+        for (VM vm : i.getModel().getMapping().getAllVMs()) {
+            i.getSatConstraints().add(new NoDelay(vm));
+        }
 
         try {
             //cra.setVerbosity(3);
