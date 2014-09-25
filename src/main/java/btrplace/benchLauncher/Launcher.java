@@ -112,8 +112,16 @@ public class Launcher {
             }
         }
 
+        for (Iterator<SatConstraint> ite = i.getSatConstraints().iterator(); ite.hasNext(); ) {
+            SatConstraint s = ite.next();
+            if (s instanceof Preserve && src.contains("nr")) {
+                ite.remove();
+            }
+        }
+
         try {
-            //cra.setVerbosity(3);
+            cra.setVerbosity(0);
+            cra.doRepair(true);
             cra.doOptimize(false);
             plan = cra.solve(i.getModel(), i.getSatConstraints());
             if (plan == null) {
