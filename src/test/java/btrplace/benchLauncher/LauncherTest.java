@@ -26,8 +26,10 @@ public class LauncherTest {
     @Test
     public void testR6() throws IOException {
         Launcher.main(new String[]{"--repair",
-                "src/test/resources/wkld-tdsc_p5000/r6-c100p5000-nr/0-c.gz",
-                "-o", "src/test/resources/r6-c100-p5000-nr-0c.csv"
+                "src/test/resources/wkld-tdsc_p5000/r3-c66p5000-nr/2-c.gz",
+                "-o", "src/test/resources/r3-c66-p5000-nr-2c.csv"
         });
+        System.err.flush();
+        System.out.flush();
     }
 }
