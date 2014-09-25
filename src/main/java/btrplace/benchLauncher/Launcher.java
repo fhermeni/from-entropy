@@ -7,9 +7,7 @@ import btrplace.model.Attributes;
 import btrplace.model.Instance;
 import btrplace.model.Node;
 import btrplace.model.VM;
-import btrplace.model.constraint.NoDelay;
-import btrplace.model.constraint.Offline;
-import btrplace.model.constraint.Online;
+import btrplace.model.constraint.*;
 import btrplace.model.view.ModelView;
 import btrplace.model.view.ShareableResource;
 import btrplace.plan.ReconfigurationPlan;
@@ -25,6 +23,7 @@ import net.minidev.json.parser.JSONParser;
 import net.minidev.json.parser.ParseException;
 
 import java.io.*;
+import java.util.Iterator;
 import java.util.zip.GZIPInputStream;
 
 /**
@@ -103,10 +102,22 @@ public class Launcher {
             i.getSatConstraints().add(new NoDelay(vm));
         }
 
+        for (Iterator<SatConstraint> ite = i.getSatConstraints().iterator(); ite.hasNext(); ) {
+            SatConstraint s = ite.next();
+            if (s instanceof Preserve && src.contains("nr")) {
+                ite.remove();
+            }
+        }
+
         try {
-            //cra.setVerbosity(3);
+            cra.setVerbosity(0);
+            cra.doRepair(true);
             cra.doOptimize(false);
             plan = cra.solve(i.getModel(), i.getSatConstraints());
+            if (plan == null) {
+                System.err.println("No solution !");
+                throw new RuntimeException();
+            }
         } catch (SolverException e) {
             e.printStackTrace();
         } finally {
