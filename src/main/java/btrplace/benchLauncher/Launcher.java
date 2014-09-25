@@ -1,6 +1,5 @@
 package btrplace.benchLauncher;
 
-import btrplace.fromEntropy.ConfigurationConverter;
 import btrplace.json.JSONConverterException;
 import btrplace.json.model.InstanceConverter;
 import btrplace.model.Attributes;
@@ -8,8 +7,6 @@ import btrplace.model.Instance;
 import btrplace.model.Node;
 import btrplace.model.VM;
 import btrplace.model.constraint.*;
-import btrplace.model.view.ModelView;
-import btrplace.model.view.ShareableResource;
 import btrplace.plan.ReconfigurationPlan;
 import btrplace.plan.event.MigrateVM;
 import btrplace.solver.SolverException;
@@ -90,8 +87,8 @@ public class Launcher {
         ReconfigurationPlan plan = null;
 
         /************** PATCH **************/
-        ModelView v = i.getModel().getView(ShareableResource.VIEW_ID_BASE + ConfigurationConverter.NB_CPUS);
-        i.getModel().detach(v);
+        //ModelView v = i.getModel().getView(ShareableResource.VIEW_ID_BASE + ConfigurationConverter.NB_CPUS);
+        //i.getModel().detach(v);
         //State constraints;
         for (Node n : i.getModel().getMapping().getOnlineNodes()) {
             i.getSatConstraints().add(new Online(n));

@@ -60,7 +60,7 @@ public class ConfigurationConverter {
 
     private Model model;
 
-    private ShareableResource rcMem, rcCpu, rcNbCPUs;
+    private ShareableResource rcMem, rcCpu;// rcNbCPUs;
 
     private NamingService<Node> registryNodes;
     private int nodeId = 0;
@@ -123,11 +123,11 @@ public class ConfigurationConverter {
 
         rcMem = new ShareableResource(MEMORY_USAGE);
         rcCpu = new ShareableResource(UCPU_USAGE);
-        rcNbCPUs = new ShareableResource(NB_CPUS);
+        //rcNbCPUs = new ShareableResource(NB_CPUS);
 
         model.attach(rcCpu);
         model.attach(rcMem);
-        model.attach(rcNbCPUs);
+        //model.attach(rcNbCPUs);
 
         registryNodes = NamingService.newNodeNS();
         registryVMs = NamingService.newVMNS();
@@ -345,9 +345,9 @@ public class ConfigurationConverter {
             model.getAttributes().put(vm, TEMPLATE, pbVM.getTemplate());
         }
 
-        if (pbVM.hasNbOfCPUs()) {
+        /*if (pbVM.hasNbOfCPUs()) {
             rcNbCPUs.setConsumption(vm, pbVM.getNbOfCPUs());
-        }
+        }*/
 
         for (PBVirtualMachine.VirtualMachine.Option opt : pbVM.getOptionsList()) {
             String k = opt.getKey();
@@ -378,9 +378,9 @@ public class ConfigurationConverter {
         }
         model.getAttributes().put(n, ENTROPY_ID, name);
 
-        if (pbNode.hasNbOfCPUs()) {
+        /*if (pbNode.hasNbOfCPUs()) {
             rcNbCPUs.setCapacity(n, pbNode.getNbOfCPUs());
-        }
+        }*/
 
         if (pbNode.hasCpuCapacity()) {
             rcCpu.setCapacity(n, pbNode.getCpuCapacity());
