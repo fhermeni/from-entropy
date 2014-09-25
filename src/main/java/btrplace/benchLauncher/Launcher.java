@@ -105,13 +105,6 @@ public class Launcher {
         /************************************/
 
         // PATCH: Remove preserve constraints
-        for (Iterator<SatConstraint> ite = i.getSatConstraints().iterator(); ite.hasNext(); ){
-            SatConstraint s = ite.next();
-            if (s instanceof Preserve && src.contains("nr")) {
-                ite.remove();
-            }
-        }
-
         for (Iterator<SatConstraint> ite = i.getSatConstraints().iterator(); ite.hasNext(); ) {
             SatConstraint s = ite.next();
             if (s instanceof Preserve && src.contains("nr")) {
