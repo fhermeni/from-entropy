@@ -87,9 +87,7 @@ public class Launcher {
         ReconfigurationPlan plan = null;
 
         /************** PATCH **************/
-        //ModelView v = i.getModel().getView(ShareableResource.VIEW_ID_BASE + ConfigurationConverter.NB_CPUS);
-        //i.getModel().detach(v);
-        //State constraints;
+        // State constraints;
         for (Node n : i.getModel().getMapping().getOnlineNodes()) {
             i.getSatConstraints().add(new Online(n));
         }
@@ -99,19 +97,17 @@ public class Launcher {
         for (VM vm : i.getModel().getMapping().getAllVMs()) {
             i.getSatConstraints().add(new NoDelay(vm));
         }
-        /************************************/
-
-        // PATCH: Remove preserve constraints
+        // Remove preserve constraints
         for (Iterator<SatConstraint> ite = i.getSatConstraints().iterator(); ite.hasNext(); ) {
             SatConstraint s = ite.next();
             if (s instanceof Preserve && src.contains("nr")) {
                 ite.remove();
             }
         }
+        /************************************/
 
         try {
             cra.setVerbosity(0);
-            cra.doRepair(true);
             cra.doOptimize(false);
             plan = cra.solve(i.getModel(), i.getSatConstraints());
             if (plan == null) {
