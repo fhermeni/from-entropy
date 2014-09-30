@@ -17,7 +17,7 @@ public class ConverterTest {
                 "src/test/resources/r3-nr0-dst.pbd",
                 "src/test/resources/datacenter.btrp",
                 "src/test/resources/clients",
-                "-o", "src/test/resources/r3-c33-p5000-nr-0c.json"
+                "-o", "src/test/resources/nr-r3-p5000-c33-0.json"
         });
     }
 
@@ -29,7 +29,7 @@ public class ConverterTest {
                 "src/test/resources/r3-nr0-dst.pbd",
                 "src/test/resources/datacenter.btrp",
                 "src/test/resources/clients",
-                "-o", "src/test/resources/r3-c33-p5000-nr-0c.gz"
+                "-o", "src/test/resources/nr-r3-p5000-c33-0.gz"
         });
     }
 }

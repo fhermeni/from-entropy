@@ -24,6 +24,11 @@ import btrplace.btrpsl.ScriptBuilderException;
 import btrplace.btrpsl.includes.BasicIncludes;
 import btrplace.json.model.InstanceConverter;
 import btrplace.model.Instance;
+import btrplace.model.Node;
+import btrplace.model.constraint.Offline;
+import btrplace.model.constraint.Online;
+import btrplace.model.constraint.Preserve;
+import btrplace.model.constraint.SatConstraint;
 import net.minidev.json.JSONObject;
 import org.apache.commons.io.FileUtils;
 
@@ -119,6 +124,23 @@ public class Converter {
                     }
                 }
             }
+
+            /************** PATCH **************/
+            // State constraints;
+            for (Node n : i.getModel().getMapping().getOnlineNodes()) {
+                i.getSatConstraints().add(new Online(n));
+            }
+            for (Node n : i.getModel().getMapping().getOfflineNodes()) {
+                i.getSatConstraints().add(new Offline(n));
+            }
+            // Remove preserve constraints
+            for (Iterator<SatConstraint> ite = i.getSatConstraints().iterator(); ite.hasNext(); ) {
+                SatConstraint s = ite.next();
+                if (s instanceof Preserve && src.contains("nr")) {
+                    ite.remove();
+                }
+            }
+            /************************************/
 
             // Convert to JSON
             InstanceConverter iConv = new InstanceConverter();

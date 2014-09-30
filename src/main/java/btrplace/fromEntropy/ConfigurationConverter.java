@@ -164,49 +164,38 @@ public class ConfigurationConverter {
 
         PBConfiguration.Configuration cfg = PBConfiguration.Configuration.parseFrom(new FileInputStream(dst));
 
-        //Nodes states
+        // Nodes states
         List<Node> on = new ArrayList<Node>();
         List<Node> off = new ArrayList<Node>();
 
-        //VMs states
+        // VMs states
         List<VM> ready = new ArrayList<VM>();
         List<VM> running = new ArrayList<VM>();
         List<VM> sleeping = new ArrayList<VM>();
         List<VM> killed = new ArrayList<VM>();
 
+        // Get and ass the nodes state constraints
         nextNodeStates(cfg, on, off);
-        nextVMStates(cfg, ready, running, sleeping, killed);
-
         if (!on.isEmpty()) {
-            for (SatConstraint nc : Online.newOnline(on)){
-                states.add(nc);
-            }
+            states.addAll(Online.newOnline(on));
         }
         if (!off.isEmpty()) {
-            for (SatConstraint nc : Offline.newOffline(off)){
-                states.add(nc);
-            }
+            states.addAll(Offline.newOffline(off));
         }
 
+        // Get and add the VMs state constraints
+        nextVMStates(cfg, ready, running, sleeping, killed);
         if (!ready.isEmpty()) {
-            for (SatConstraint r : Ready.newReady(ready)){
-                states.add(r);
-            }
+            states.addAll(Ready.newReady(ready));
         }
         if (!running.isEmpty()) {
-            for (SatConstraint r : Running.newRunning(running)){
-                states.add(r);
-            }
-        }
-        if (!killed.isEmpty()) {
-            for (SatConstraint k : Killed.newKilled(killed)){
-                states.add(k);
-            }
+            states.addAll(Running.newRunning(running));
         }
         if (!sleeping.isEmpty()) {
-            for (SatConstraint s : Sleeping.newSleeping(sleeping)){
-                states.add(s);
-            }
+            states.addAll(Sleeping.newSleeping(sleeping));
+        }
+        if (!killed.isEmpty()) {
+            states.addAll(Killed.newKilled(killed));
         }
 
         return states;
@@ -256,13 +245,13 @@ public class ConfigurationConverter {
     }
 
     private void nextNodeStates(PBConfiguration.Configuration cfg, List<Node> on, List<Node> off) {
-        //Check for the online nodes that go offline
+        //Check for offline nodes
         for (PBNode.Node n : cfg.getOfflinesList()) {
             Node node = registryNodes.resolve("@"+n.getName());
             off.add(node);
         }
 
-        //Check for the offline nodes that go online
+        //Check for online nodes
         for (PBConfiguration.Configuration.Hoster n : cfg.getOnlinesList()) {
             Node node = registryNodes.resolve("@"+n.getNode().getName());
             on.add(node);
